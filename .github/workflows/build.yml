@@ -50,7 +50,12 @@ jobs:
 
       - name: Build app
         run: ./gradlew :app:testFullDebugUnitTest :app:assembleFullRelease
-
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-v2-release-apk
+          path: app/build/outputs/apk/full/release/*.apk
+          if-no-files-found: error  
       # Sign APK and create release for tags
 
       - name: Prepare build metadata
