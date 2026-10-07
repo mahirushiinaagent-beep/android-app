@@ -13,6 +13,8 @@ sealed interface Route : NavKey {
     @Serializable data object Rankings : Route
 
     @Serializable data object Settings : Route
+    
+    @Serializable data object Alisa : Route
 
     @Serializable data object About : Route
 
