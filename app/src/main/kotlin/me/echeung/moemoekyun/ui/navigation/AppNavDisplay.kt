@@ -14,6 +14,7 @@ import androidx.navigation3.ui.NavDisplay
 import androidx.navigationevent.NavigationEvent
 import me.echeung.moemoekyun.ui.screen.about.AboutScreen
 import me.echeung.moemoekyun.ui.screen.about.LicensesScreen
+import me.echeung.moemoekyun.ui.screen.alisa.AlisaScreen
 import me.echeung.moemoekyun.ui.screen.auth.LoginScreen
 import me.echeung.moemoekyun.ui.screen.auth.RegisterScreen
 import me.echeung.moemoekyun.ui.screen.home.HomeScreen
