@@ -1,0 +1,20 @@
+# Render Blueprint (optional). Dashboard → New → Blueprint → pick your repo. Secrets are prompted for, never stored in git.
+services:
+  - type: web
+    name: alisa
+    runtime: node
+    plan: free            # free = sleeps after 15 min idle and has NO persistent disk (see DEPLOY.md)
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: TRUST_PROXY
+        value: "1"
+      - key: ALISA_TOKEN
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: DATABASE_URL     # Neon pooled connection string (see DEPLOY.md)
+        sync: false

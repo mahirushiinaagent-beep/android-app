@@ -1,0 +1,26 @@
+{
+  "id": "/",
+  "name": "ALISA",
+  "short_name": "ALISA",
+  "description": "Advanced Learning Intelligent System Assistant",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#030817",
+  "theme_color": "#030817",
+  "icons": [
+    {
+      "src": "/alisa-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/alisa.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

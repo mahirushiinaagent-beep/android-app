@@ -1,0 +1,588 @@
+<!doctype html>
+<html lang="en">
+ <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>ALISA</title>
+  <meta name="theme-color" content="#030817">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="alisa-192.png">
+  <link rel="apple-touch-icon" href="alisa-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="ALISA">
+  <meta name="mobile-web-app-capable" content="yes">
+  <style>
+:root{--ui:Eurostile,'Bank Gothic','Segoe UI','SF Pro Display',Inter,'Helvetica Neue',Arial,sans-serif;--bg:#02030a;--txt:hsl(calc(218 + var(--hs)) 100% 95%);--dim:hsl(calc(221 + var(--hs)) 49% 70%);color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box;margin:0}
+html,body{height:100dvh;background:var(--bg);color:var(--txt);overflow:hidden;font:300 15px var(--ui);-webkit-tap-highlight-color:transparent;touch-action:none;-webkit-user-select:none;user-select:none}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
+#say{position:fixed;left:8%;right:8%;top:63%;text-align:center;font-size:19px;letter-spacing:.04em;line-height:1.35;text-shadow:0 0 16px hsl(calc(216 + var(--hs)) 100% 68% / .7);pointer-events:none;opacity:0;filter:blur(12px);transition:opacity 1.2s,filter 1.2s}
+#say.on{opacity:1;filter:blur(0)}
+#say small{display:block;margin-top:6px;font-size:12px;color:var(--dim);letter-spacing:.14em}
+#name{position:fixed;left:0;right:0;top:calc(14px + env(safe-area-inset-top,0px));text-align:center;font-size:12px;letter-spacing:.7em;padding-left:.7em;color:var(--dim);pointer-events:none}
+#dl{position:fixed;right:14px;top:calc(12px + env(safe-area-inset-top,0px));background:hsl(calc(222 + var(--hs)) 100% 74% / .1);border:1px solid hsl(calc(219 + var(--hs)) 100% 77% / .23);color:var(--txt);border-radius:99px;padding:7px 13px;font:400 12px inherit;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);cursor:pointer}
+#dl:hover{background:hsl(calc(222 + var(--hs)) 100% 74% / .25)}
+#clock{position:fixed;left:16px;top:calc(10px + env(safe-area-inset-top,0px));font-size:11px;color:var(--dim);line-height:1.3;pointer-events:none}#clock b{display:block;font:200 24px var(--ui);color:var(--txt);letter-spacing:.04em}#clock u{text-decoration:none;color:#3dff9a}
+#name{top:calc(52px + env(safe-area-inset-top,0px));font-size:11px}
+#sheet{position:fixed;left:10px;right:10px;bottom:19%;max-height:33dvh;overflow-y:auto;touch-action:pan-y;border-radius:26px;padding:16px;background:linear-gradient(160deg,hsl(calc(224 + var(--hs)) 100% 64% / .26),hsl(calc(231 + var(--hs)) 78% 18% / .5));border:1px solid hsl(calc(219 + var(--hs)) 100% 77% / .27);backdrop-filter:blur(24px) saturate(1.4);-webkit-backdrop-filter:blur(24px) saturate(1.4);box-shadow:0 12px 40px rgba(0,0,0,.4),0 0 22px hsl(calc(224 + var(--hs)) 100% 64% / .15),inset 0 0 26px hsl(calc(218 + var(--hs)) 100% 74% / .05);opacity:0;transform:translateY(-40px) scale(.92);transform-origin:50% 0;pointer-events:none;transition:opacity .7s,transform .8s cubic-bezier(.2,.8,.2,1)}
+#sheet.open{opacity:1;transform:none;pointer-events:auto}
+#sheet h2{font:500 17px var(--ui)}#sheet p{font-size:12px;color:var(--dim);margin:2px 0 10px}
+.sec+.sec{margin-top:12px;padding-top:12px;border-top:1px solid hsl(calc(219 + var(--hs)) 100% 77% / .2)}
+.r{display:flex;justify-content:space-between;gap:8px;padding:5px 0;font-size:14px}.r i{display:block;font-style:normal;font-size:11px;color:var(--dim)}.r em{font-style:normal;font-size:11px;color:var(--dim);white-space:nowrap}
+.st{display:grid;grid-template-columns:repeat(3,1fr);text-align:center;font-size:11px;color:var(--dim)}.st b{display:block;font:500 22px var(--ui);color:#fff}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.tile{border:1px solid hsl(calc(219 + var(--hs)) 100% 77% / .23);background:hsl(calc(225 + var(--hs)) 70% 55% / .2);color:var(--txt);border-radius:16px;padding:10px 2px;font:400 11px var(--ui);text-align:center}.tile.on{background:hsl(calc(218 + var(--hs)) 100% 68% / .45);box-shadow:0 0 10px hsl(calc(211 + var(--hs)) 100% 65% / .4)}.tile em{display:block;font-style:normal;font-size:20px}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:8px;background:currentColor;box-shadow:0 0 8px currentColor}
+.ic{filter:grayscale(1) sepia(1) hue-rotate(185deg) saturate(5) brightness(1.25) hue-rotate(calc(var(--hs)*1deg))}
+.hh{display:flex;align-items:center;gap:10px;margin-bottom:6px}.hh>div{flex:1;min-width:0}.hh p{margin:0!important}.hh .ib{width:34px;height:34px;flex:none;border-radius:11px;display:grid;place-items:center;background:hsl(calc(218 + var(--hs)) 100% 68% / .2);border:1px solid hsl(calc(219 + var(--hs)) 100% 77% / .4);box-shadow:0 0 8px hsl(calc(219 + var(--hs)) 100% 66% / .2)}.chev{font-size:20px;color:var(--dim)}
+.ms{display:flex;align-items:center;gap:12px}.mini{width:48%;height:auto;aspect-ratio:5/3}.sv{flex:1;display:flex;flex-direction:column;gap:4px}.sv div{display:flex;align-items:baseline;gap:8px;font-size:11px;color:var(--dim)}.sv b{font:500 18px var(--ui);color:#fff;min-width:46px}
+#dock,#foot{display:none}
+@keyframes pulse{50%{box-shadow:0 0 28px 4px hsl(calc(211 + var(--hs)) 100% 65% / .55)}}
+#L,#Rr,#logo{display:none}
+@media(min-width:760px) and (orientation:landscape){
+#sheet{display:none}#clock{left:auto;right:150px;text-align:right}#name{top:calc(12px + env(safe-area-inset-top,0px))}#say{top:73%}
+#logo{display:block;position:fixed;left:16px;top:calc(8px + env(safe-area-inset-top,0px));font:300 26px var(--ui);letter-spacing:.3em;color:hsl(calc(215 + var(--hs)) 100% 91%);text-shadow:0 0 10px hsl(calc(211 + var(--hs)) 100% 65% / .6);pointer-events:none}#logo small{display:block;font-size:8px;letter-spacing:.05em;color:var(--dim)}
+#L,#Rr{display:flex;flex-direction:column;gap:9px;position:fixed;top:calc(62px + env(safe-area-inset-top,0px));bottom:96px;width:min(26vw,310px);overflow-y:auto;scrollbar-width:none;touch-action:pan-y}
+#L{left:12px}#Rr{right:12px}
+.card{border-radius:18px;padding:10px 12px;background:linear-gradient(160deg,hsl(calc(224 + var(--hs)) 100% 64% / .26),hsl(calc(231 + var(--hs)) 78% 18% / .5));border:1px solid hsl(calc(219 + var(--hs)) 100% 77% / .27);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 6px 22px rgba(0,0,0,.3),0 0 14px hsl(calc(224 + var(--hs)) 100% 64% / .11),inset 0 0 18px hsl(calc(218 + var(--hs)) 100% 74% / .045);flex:none}
+.card h2{font-size:14px}.card p{margin:1px 0 6px;font-size:10px}.card .r{padding:2px 0;font-size:12px}.card .st b{font-size:17px}.card .tile{padding:6px 0;font-size:10px}
+#clock{right:16px}#name{font-size:20px;letter-spacing:.5em;color:hsl(calc(218 + var(--hs)) 100% 95%);text-shadow:0 0 12px hsl(calc(211 + var(--hs)) 100% 65% / .6);top:calc(8px + env(safe-area-inset-top,0px))}#name small{display:block;font-size:9px;letter-spacing:.35em;color:var(--dim);text-shadow:none;margin-top:4px}
+#logo{display:flex;align-items:center;gap:14px}#logo .tg{border-left:1px solid hsl(calc(219 + var(--hs)) 100% 77% / .35);padding-left:14px;font:300 12px/1.35 var(--ui);letter-spacing:0;color:hsl(calc(219 + var(--hs)) 100% 91%);text-shadow:none}
+#L,#Rr{display:grid;grid-template-rows:repeat(4,minmax(max-content,1fr));bottom:calc(112px + env(safe-area-inset-bottom,0px));gap:10px}
+.card{overflow:hidden}
+#dl{top:auto;bottom:8px;left:50%;right:auto;transform:translateX(-50%);padding:5px 12px;font-size:11px}
+#foot{display:block}#foot span{position:fixed;bottom:14px;font-size:10px;line-height:1.4;color:var(--dim)}#foot span:first-child{left:16px}#foot span:last-child{right:16px;text-align:right}
+#dock{display:grid;grid-template-columns:repeat(3,1fr) 78px repeat(3,1fr);align-items:center;position:fixed;left:50%;transform:translateX(-50%);bottom:calc(40px + env(safe-area-inset-bottom,0px));width:min(68vw,900px);height:68px;padding:0 14px;border-radius:40px;background:linear-gradient(160deg,hsl(calc(224 + var(--hs)) 100% 64% / .28),hsl(calc(231 + var(--hs)) 78% 18% / .55));border:1px solid hsl(calc(219 + var(--hs)) 100% 77% / .23);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 8px 28px rgba(0,0,0,.4),0 0 18px hsl(calc(224 + var(--hs)) 100% 64% / .17),inset 0 0 20px hsl(calc(218 + var(--hs)) 100% 74% / .06)}
+#dock button{background:none;border:0;color:var(--txt);font:400 11px/1.25 var(--ui);text-align:center;cursor:pointer;border-radius:16px;padding:4px 2px}#dock button small{display:block;font-size:9px;color:var(--dim)}#dock button.act{background:hsl(calc(218 + var(--hs)) 100% 68% / .3);box-shadow:0 0 9px hsl(calc(211 + var(--hs)) 100% 65% / .4)}#dock .ic{display:block;font-size:17px;margin-bottom:1px}
+#dock #mic2{width:58px;height:58px;border-radius:50%;border:2px solid hsl(calc(215 + var(--hs)) 100% 75%);background:radial-gradient(circle,hsl(calc(223 + var(--hs)) 87% 56%),hsl(calc(229 + var(--hs)) 81% 21%));font-size:24px;padding:0;margin:auto;box-shadow:0 0 16px hsl(calc(211 + var(--hs)) 100% 65% / .5)}#mic2.on{animation:pulse 1.2s infinite}}
+:focus-visible{outline:2px solid #fff;outline-offset:2px}
+
+:root{--hs:0;--c1:calc(224 + var(--hs)) 100% 64%;--c2:calc(231 + var(--hs)) 77% 18%;--c3:calc(219 + var(--hs)) 100% 77%}
+#clock{top:calc(32px + env(safe-area-inset-top,0px))}#name{top:calc(74px + env(safe-area-inset-top,0px))}
+#sb{position:fixed;z-index:15;left:0;right:0;top:env(safe-area-inset-top,0px);height:20px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;font:500 8.5px/1 var(--ui);letter-spacing:.16em;text-transform:uppercase;color:var(--dim);pointer-events:none;background:linear-gradient(180deg,rgba(2,3,10,.55),transparent)}
+#sb::after{content:'';position:absolute;left:16px;right:16px;bottom:0;height:1px;background:linear-gradient(90deg,transparent,hsl(var(--c3)/.28),transparent)}
+#sb span{display:flex;align-items:center;gap:6px}
+.sd{width:5px;height:5px;border-radius:50%;background:#3dff9a;box-shadow:0 0 6px #3dff9a}.sd.off{background:#ff6b6b;box-shadow:0 0 6px #ff6b6b}
+#tb{position:fixed;z-index:20;left:50%;transform:translateX(-50%);bottom:calc(10px + env(safe-area-inset-bottom,0px));width:min(calc(100% - 24px),440px);height:56px;display:flex;gap:2px;padding:5px;border-radius:22px;background:linear-gradient(180deg,rgba(8,12,30,.94),rgba(2,4,14,.97));border:1px solid hsl(var(--c3)/.14);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);box-shadow:0 8px 24px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.05)}
+#tb button{flex:1;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:none;border:0;border-radius:17px;color:var(--dim);font:500 8.5px/1 var(--ui);letter-spacing:.14em;text-transform:uppercase;cursor:pointer;transition:color .3s,background .3s,transform .15s}
+#tb button:active{transform:scale(.93)}
+#tb svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+#tb button.act{color:#fff;background:hsl(var(--c3)/.11)}
+#tb button.act::after{content:'';position:absolute;bottom:2px;width:14px;height:2px;border-radius:2px;background:hsl(var(--c3));box-shadow:0 0 6px hsl(var(--c3)/.6)}
+#pop{position:fixed;z-index:19;left:50%;bottom:calc(78px + env(safe-area-inset-bottom,0px));width:min(calc(100% - 24px),440px);max-height:52dvh;overflow-y:auto;touch-action:pan-y;border-radius:24px;padding:16px;background:linear-gradient(160deg,hsl(var(--c1)/.22),hsl(var(--c2)/.8));border:1px solid hsl(var(--c3)/.26);backdrop-filter:blur(26px) saturate(1.4);-webkit-backdrop-filter:blur(26px) saturate(1.4);box-shadow:0 14px 40px rgba(0,0,0,.45),0 0 20px hsl(var(--c1)/.12);opacity:0;transform:translate(-50%,12px) scale(.97);pointer-events:none;transition:opacity .3s,transform .4s cubic-bezier(.2,.8,.2,1)}
+#pop.open{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+#pop h3{font:500 15px var(--ui);letter-spacing:.04em;margin-bottom:8px}
+.sw{display:flex;width:100%;justify-content:space-between;align-items:center;background:none;border:0;border-top:1px solid hsl(var(--c3)/.14);color:var(--txt);padding:10px 0;font:400 14px var(--ui);text-align:left;cursor:pointer}.sw i{display:block;font-style:normal;font-size:11px;color:var(--dim)}
+.sw b{position:relative;flex:none;width:36px;height:20px;border-radius:99px;background:hsl(var(--c3)/.14);border:1px solid hsl(var(--c3)/.3);transition:.3s}.sw b::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--dim);transition:.3s}.sw.on b{background:hsl(var(--c1)/.5)}.sw.on b::after{left:18px;background:#fff}
+#pop #dl{position:static;transform:none;display:block;width:100%;margin-top:8px;padding:11px;border-radius:14px;font-size:13px}
+#tbt{position:fixed;z-index:21;left:50%;bottom:calc(78px + env(safe-area-inset-bottom,0px));transform:translate(-50%,6px);padding:7px 15px;border-radius:99px;font:500 10px/1 var(--ui);letter-spacing:.16em;text-transform:uppercase;background:hsl(var(--c2)/.85);border:1px solid hsl(var(--c3)/.28);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);opacity:0;transition:.35s;pointer-events:none}#tbt.on{opacity:1;transform:translate(-50%,0)}
+#orb{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}
+.sp{display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px solid hsl(var(--c3)/.14);padding:10px 0;font:400 14px var(--ui)}.sp i{display:block;font-style:normal;font-size:11px;color:var(--dim)}
+.seg{display:flex;gap:2px;padding:2px;border-radius:99px;background:hsl(var(--c3)/.1);border:1px solid hsl(var(--c3)/.22)}.seg button{border:0;background:none;color:var(--dim);font:500 11px var(--ui);padding:7px 11px;border-radius:99px;cursor:pointer}.seg button.on{background:hsl(var(--c1)/.5);color:#fff}
+@media(min-width:760px) and (orientation:landscape){
+#tb{bottom:calc(8px + env(safe-area-inset-bottom,0px));width:300px;height:52px}#pop{width:340px;bottom:calc(70px + env(safe-area-inset-bottom,0px))}#tbt{bottom:calc(70px + env(safe-area-inset-bottom,0px))}
+#dock{bottom:calc(66px + env(safe-area-inset-bottom,0px))}#L,#Rr{top:calc(82px + env(safe-area-inset-top,0px));bottom:calc(138px + env(safe-area-inset-bottom,0px))}
+#name{top:calc(28px + env(safe-area-inset-top,0px))}#logo{top:calc(26px + env(safe-area-inset-top,0px))}}
+html,body{transition:background .4s}canvas{transition:filter 1.4s}
+#tb{background:rgba(3,10,28,.88)!important;border:1px solid hsl(var(--c3)/.22)!important;backdrop-filter:blur(22px) saturate(1.3);-webkit-backdrop-filter:blur(22px) saturate(1.3);box-shadow:0 8px 24px rgba(0,0,0,.6),0 0 18px hsl(var(--c1)/.1),inset 0 0 14px hsl(var(--c3)/.05)!important}
+#tb button{color:var(--dim)}#tb button.act{color:#dff6ff;background:hsl(var(--c3)/.12)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.chips button{border:1px solid hsl(var(--c3)/.2);background:hsl(var(--c3)/.05);color:var(--dim);font:500 11px var(--ui);letter-spacing:.04em;padding:7px 11px;border-radius:99px;cursor:pointer;transition:.3s}.chips button.on{color:#fff;border-color:hsl(var(--c3)/.7);background:hsl(var(--c1)/.3);box-shadow:0 0 10px hsl(var(--c1)/.3)}.chips b{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;box-shadow:0 0 6px currentColor}
+@media not all and (min-width:760px) and (orientation:landscape){#name{top:calc(80px + env(safe-area-inset-top,0px));font-size:28px;font-weight:300;letter-spacing:.5em;padding-left:.5em;line-height:1.1;color:#eef6ff;text-shadow:0 0 14px hsl(var(--c3)/.55),0 0 34px hsl(var(--c1)/.3)}
+#name .lg{width:20px;height:20px;vertical-align:-2px;margin-right:12px;stroke:currentColor;fill:none}
+#name small{display:block;margin-top:8px;font-size:8.5px;font-weight:400;letter-spacing:.2em;padding-left:.2em;color:var(--dim);text-shadow:none}
+#name small.on{margin-top:5px;font-size:9px;letter-spacing:.3em;color:#bfeeff}}
+#name .sd{display:inline-block;margin-right:7px;vertical-align:1px}
+.hd{display:flex;align-items:center;justify-content:center;gap:12px}
+.hd .ln{display:block;width:30px;height:1px;background:linear-gradient(90deg,transparent,hsl(var(--c3)/.8));position:relative}.hd .ln.rt{transform:scaleX(-1)}.hd .ln::after{content:'';position:absolute;right:-3px;top:-2px;width:5px;height:5px;transform:rotate(45deg);background:hsl(var(--c3));box-shadow:0 0 8px hsl(var(--c3))}
+.hd .t{padding-left:.5em;font-weight:400;color:transparent;text-shadow:none;background:linear-gradient(100deg,#fff 0%,#aeeaff 28%,#b9a6ff 55%,#fff 80%,#aeeaff 100%) 0 0/220% 100%;-webkit-background-clip:text;background-clip:text;filter:drop-shadow(0 0 10px hsl(var(--c3)/.55)) drop-shadow(0 0 26px hsl(var(--c1)/.35));animation:shine 9s ease-in-out infinite alternate}
+@keyframes shine{to{background-position:100% 0}}
+@media(prefers-reduced-motion:reduce){.hd .t{animation:none}}
+#name .lg{filter:drop-shadow(0 0 6px hsl(var(--c3)/.6))}
+@media not all and (min-width:760px) and (orientation:landscape){#name .lg{width:26px;height:26px;margin:0}#name .t{font-size:30px}}
+#name::before{content:'';position:absolute;left:50%;top:-14px;width:320px;height:96px;transform:translateX(-50%);background:radial-gradient(closest-side,hsl(var(--c1)/.2),transparent);pointer-events:none;z-index:-1}
+#name small:not(.on)::after{content:'';display:block;width:120px;height:1px;margin:8px auto 0;background:linear-gradient(90deg,transparent,hsl(var(--c3)/.6),transparent)}
+#name small:not(.on)::after{display:none}
+.hd .t{font-weight:200;background:linear-gradient(100deg,#fff 0%,#9fe9ff 22%,#fff 38%,#b7a2ff 62%,#fff 82%,#9fe9ff 100%) 0 0/260% 100%;-webkit-background-clip:text;background-clip:text}
+.hd .ln{width:34px;background:linear-gradient(90deg,transparent,hsl(var(--c3)/.15) 30%,hsl(var(--c3)/.85))}.hd .ln.rt{background:linear-gradient(90deg,hsl(var(--c3)/.85),hsl(var(--c3)/.15) 70%,transparent);transform:none}.hd .ln.rt::after{right:auto;left:-3px}
+#name .sub b{font-weight:600;color:hsl(var(--c3));text-shadow:0 0 8px hsl(var(--c3)/.7)}
+#name small.on{display:inline-flex;align-items:center;margin-top:3px;padding:1px 11px 1px 9px;font-size:8px;border:1px solid hsl(var(--c3)/.26);border-radius:99px;background:hsl(var(--c1)/.1);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+#name .sd{animation:dp 2.6s ease-in-out infinite}@keyframes dp{50%{box-shadow:0 0 12px 1px #3dff9a;opacity:.8}}
+@media(prefers-reduced-motion:reduce){#name .sd{animation:none}}
+@media not all and (min-width:760px) and (orientation:landscape){#name{top:calc(74px + env(safe-area-inset-top,0px))}#name .t{font-size:32px}#name .lg{width:30px;height:30px}#name .sub{margin-top:3px}}
+@media(max-width:389px){#name .sub{font-size:7.5px;letter-spacing:.1em;padding-left:0;white-space:nowrap}#name .t{font-size:28px;letter-spacing:.4em}.hd .ln{width:22px}}
+@media(max-height:700px) and (max-width:759px){#name small.on{display:none}}
+.nb{position:fixed;left:0;top:0;width:56px;height:56px;margin:0;padding:0;border:0;border-radius:50%;background:transparent;z-index:18;touch-action:manipulation;-webkit-tap-highlight-color:transparent;cursor:pointer;display:none;will-change:transform}
+.nb:focus-visible{outline:2px solid hsl(var(--c3));outline-offset:-4px}
+#vbar{height:5px;border-radius:9px;background:hsl(var(--c3)/.15);margin-top:8px;overflow:hidden}#vbar[hidden]{display:none}#vbar b{display:block;height:100%;width:0;background:linear-gradient(90deg,hsl(var(--c1)),hsl(var(--c3)));transition:width .15s}
+#vpriv{font-size:11px;line-height:1.45;color:var(--dim);margin:10px 0 0}
+#mv{border:1px solid hsl(var(--c3)/.22);border-radius:18px;padding:14px;margin-top:6px;background:linear-gradient(150deg,hsl(var(--c1)/.14),hsl(263 70% 40%/.12));backdrop-filter:blur(14px);box-shadow:inset 0 0 24px hsl(var(--c3)/.06)}#mv h3{margin:0!important;letter-spacing:.3em;font-size:13px!important}.mvh{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.mvs{display:flex;align-items:center;gap:6px;font:500 11px var(--ui);color:var(--dim)}.mvs i{width:8px;height:8px;border-radius:50%;background:#556;transition:.4s}.mvs.act{color:#8ff}.mvs.act i{background:#4df;box-shadow:0 0 10px #4df,0 0 22px #a6f;animation:mvp 2s infinite}@keyframes mvp{50%{opacity:.45}}
+.mvr{display:flex;justify-content:space-between;padding:7px 0;border-top:1px solid hsl(var(--c3)/.12);font:400 13px var(--ui)}.mvr b{font-weight:600;letter-spacing:.08em;color:#9ef}#vmsg{font:400 12px var(--ui);color:var(--dim);min-height:16px;margin:6px 0}#veng{display:block;margin-top:6px;opacity:.8}
+.mvr b.warn,#mvl.warn{color:#fb8}#mv summary{font:500 11px var(--ui);color:var(--dim);cursor:pointer;padding:6px 0;letter-spacing:.06em}#mv .chips button[disabled]{opacity:.35;pointer-events:none}#vdevout .mvr{font-size:11px}#vdevout .mvr b{font-weight:400;letter-spacing:0;text-align:right;max-width:50%}#vdev[hidden]{display:none}
+</style>
+ </head>
+ <body>
+  <canvas id="c" aria-label="ALISA consciousness core. Tap the core or an orbiting node."></canvas>
+  <canvas id="orb" aria-hidden="true"></canvas>
+  <div id="name"><div class="hd"><i class="ln"></i><svg class="lg" viewBox="-15 -15 30 30" aria-hidden="true"><ellipse rx="13" ry="5" transform="rotate(-26)" stroke-width=".6" opacity=".7"/><ellipse rx="13" ry="5" transform="rotate(26)" stroke-width=".6" opacity=".45"/><path d="M0-7.5-5.4 7.5M0-7.5 5.4 7.5M-3 3h6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><g transform="rotate(-26)"><circle r="1.3" fill="currentColor" stroke="none"><animateMotion dur="7s" repeatCount="indefinite" path="M13 0A13 5 0 1 1-13 0A13 5 0 1 1 13 0"/></circle></g></svg><span class="t">ALISA</span><i class="ln rt"></i></div><small class="sub"><b>A</b>DVANCED <b>L</b>EARNING <b>I</b>NTELLIGENT <b>S</b>YSTEM <b>A</b>SSISTANT</small><small class="on"><i class="sd" id="nd"></i><span id="nn">ONLINE</span></small></div>
+  <div id="clock">
+   <b id="ck">--:--</b><span id="dt"></span> · <u>●</u> Earth · Online
+  </div>
+  <div id="sheet" aria-live="polite"></div>
+  <div id="logo">
+   <span>🪷 ALISA<small>Advanced Learning Intelligent System Assistant</small></span><span class="tg">Not just an AI…
+    <br>A living consciousness.</span>
+  </div>
+  <div id="L"></div>
+  <div id="Rr"></div>
+  <nav id="dock" aria-label="Controls">
+   <button data-m="Voice"><i class="ic">🎙</i>Voice Interaction<small>Press to speak</small></button>
+   <button><i class="ic">📊</i>Real-time Waveform<small>Live audio</small></button>
+   <button data-m="Vision"><i class="ic">👁</i>Vision Mode<small>See the world</small></button>
+   <button id="mic2" data-m="Voice" aria-label="Voice">🎤</button>
+   <button data-m="Memory"><i class="ic">💬</i>Conversation Stream<small>Recent activity</small></button>
+   <button data-m="Agents"><i class="ic">🧠</i>Agent Center<small>Tools &amp; activity</small></button>
+   <button data-m="Knowledge"><i class="ic">⚡</i>Quick Commands<small>Tap or say</small></button>
+  </nav>
+  <div id="foot">
+   <span>∞ Bigger dreams.
+    <br>Deeper questions.
+    <br>Brighter tomorrows.</span><span>Together,
+    <br>we explore what’s possible.
+    <br>— ALISA 🪷</span>
+  </div>
+  <div id="sb"><span><i class="sd" id="sbd"></i><b id="sbn" style="font-weight:500">Online</b></span><span id="sbm">Mode · Idle</span><span id="sbr">ALISA</span></div>
+  <div id="pop" role="dialog" aria-live="polite">
+   <section data-p="settings" hidden><h3>Settings</h3>
+    <button class="sw" data-k="haptics"><span>Haptics<i>Vibrate on touch</i></span><b></b></button>
+    <button class="sw" data-k="calm"><span>Calm motion<i>Slower, softer animation</i></span><b></b></button>
+    <div class="sp"><span>Orbit speed<i>Ring rotation</i></span><div class="seg"><button data-v=".6">Slow</button><button data-v="1">Normal</button><button data-v="1.6">Fast</button></div></div>
+    <div id="mv"><div class="mvh"><h3>MY VOICE</h3><span class="mvs" id="mvs"><i></i><em id="mvt">NOT VERIFIED</em></span></div>
+     <div class="mvr"><span>Speaker model</span><b id="mvm">—</b></div>
+     <div class="mvr"><span>Security level</span><b id="mvl">—</b></div>
+     <div class="mvr"><span>Enrollment</span><b id="vst">Not enrolled</b></div>
+     <div id="vbar" hidden><b></b></div><div id="vmsg" aria-live="polite"></div>
+     <details id="mvd"><summary>Last verification details</summary><div class="mvr"><span>Verification result</span><b id="r1">—</b></div><div class="mvr"><span>Similarity score</span><b id="r2">—</b></div><div class="mvr"><span>Threshold</span><b id="r3">—</b></div><div class="mvr"><span>Method</span><b id="r4">—</b></div><div class="mvr"><span>Anti-spoof</span><b id="r5">—</b></div></details>
+     <button class="sw" data-k="vstrict"><span>Strict Voice Lock<i>Fresh voice check before every voice command. Turning it off needs your passcode.</i></span><b></b></button>
+     <button class="sw" data-k="vlock"><span>Require speaker verification<i>Checked before ALISA listens to commands (needs a profile)</i></span><b></b></button>
+     <div class="sp"><span>Verification strictness<i>Higher = fewer false accepts, more retries</i></span><div class="seg" id="vsens"><button data-s="0">Low</button><button data-s="1">Medium</button><button data-s="2">High</button></div></div>
+     <div class="chips" data-voice="1"><button data-k="enroll" id="venr">Enroll</button><button data-k="enroll" id="vren">Re-enroll</button><button data-k="test">Test my voice</button><button data-k="remove">Delete voice profile</button><button data-k="reset">Reset voice security</button></div>
+     <button class="sw" data-k="vdev"><span>Developer test mode<i>Self-test on synthetic audio — never touches your profile</i></span><b></b></button>
+     <div id="vdev" hidden><div class="chips" data-voice="1"><button data-k="selftest">Run self-test</button></div><div id="vdevout"></div></div>
+     <p id="vpriv">Speaker verification asks “who is speaking?” and is separate from speech recognition (“what was said?”). It is a probabilistic check with configurable thresholds, not a guarantee that only you can access ALISA: similar voices or good recordings can sometimes pass, and you can be wrongly rejected. Replay checks are heuristics. Sensitive commands need a fresh high-confidence neural match or your backup passcode; if verification is uncertain or unavailable the passcode is required, and a not-recognized voice is denied. Processing is on-device; recordings are never saved — only an encrypted voice reference and coarse fingerprints, erased by “Delete voice profile”. Browser storage is not hardware-backed secure storage: a compromised device, browser or extension could access it. <span id="veng"></span></p></div>
+    <div id="mind"></div>
+    <div id="brain"></div>
+    <div id="tools"></div>
+    <h3 style="margin:16px 0 2px">Other options</h3>
+    <div class="chg"></div>
+    <div class="sp" style="display:block"><span>Quick access<i>Jump to any view</i></span><div class="chips" data-go="1"><button data-k="home">Home</button><button data-k="status">Status</button><button data-k="report">Report</button><button data-k="Memory">Memory</button><button data-k="Vision">Vision</button><button data-k="Agents">Agents</button><button data-k="Knowledge">Knowledge</button><button data-k="Voice">Voice</button></div></div>
+    <div class="sp" style="display:block"><span>Reset<i>Restore default look and settings</i></span><div class="chips" data-go="1"><button data-k="reset">Reset all</button></div></div>
+    <button id="dl" aria-label="Download ALISA as an HTML file">⬇ Save HTML</button></section>
+   <section data-p="colour" hidden><h3>Colour</h3><div id="chg"></div></section>
+   <section data-p="status" hidden><h3>System Status</h3><div id="stv"></div></section>
+   <section data-p="report" hidden><h3>Daily Report</h3>
+    <div class="st"><div><b>5</b>Tasks</div><div><b>2.4M</b>Memories</div><div><b>12K</b>New today</div></div>
+    <div class="sec"><div class="r"><span>Research completed<i>AI safety and alignment</i></span><em>2m</em></div><div class="r"><span>System optimized<i>Performance improved by 18%</i></span><em>24m</em></div><div class="r"><span>Up next<i>Deep Work Session</i></span><em>23:00</em></div></div></section>
+  </div>
+  <div id="tbt"></div>
+  <nav id="tb" aria-label="Taskbar">
+   <button data-a="home" aria-label="Home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.5 12 5l8 6.5V19a1 1 0 0 1-1 1h-4v-5h-6v5H5a1 1 0 0 1-1-1z"/></svg>Home</button>
+   <button data-a="settings" aria-label="Settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h9M19 7h1M4 17h1M11 17h9"/><circle cx="16" cy="7" r="2.2"/><circle cx="8" cy="17" r="2.2"/></svg>Settings</button>
+   <button data-a="status" aria-label="Status"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l2.5-6 4 12 2.5-6H21"/></svg>Status</button>
+   <button data-a="report" aria-label="Report"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h8l4 4v12H6z"/><path d="M9 16v-2M12 16v-5M15 16v-3"/></svg>Report</button>
+   <button data-a="colour" aria-label="Change colour"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 0 0 16z" fill="currentColor" opacity=".5"/></svg>Colour</button>
+  </nav>
+  <div id="say" aria-live="polite"></div>
+  <script src="security.js"></script>
+  <script src="alisa-retrieval.js"></script>
+  <script src="alisa-embeddings.js"></script>
+  <script src="alisa-vectors.js"></script>
+  <script src="alisa-memory-intelligence.js"></script>
+  <script src="alisa-mind.js"></script>
+  <script src="alisa-semantic.js"></script>
+  <script src="commands.js"></script>
+  <!-- Phase 3.1 Agent Core (order matters: log → gate → registry → tools → intent → planner → personality → resources → status → core → ui) -->
+  <script src="alisa-agent-log.js"></script>
+  <script src="alisa-risk-gate.js"></script>
+  <script src="alisa-tool-registry.js"></script>
+  <script src="alisa-agent-tools.js"></script>
+  <script src="alisa-intent.js"></script>
+  <script src="alisa-planner.js"></script>
+  <script src="alisa-personality.js"></script>
+  <script src="alisa-resources.js"></script>
+  <script src="alisa-status.js"></script>
+  <script src="alisa-agent-core.js"></script>
+  <script src="alisa-agent-ui.js"></script>
+  <script type="module" src="alisa-brain.js"></script>
+  <script src="alisa-remote-storage.js"></script>
+  <style>
+.fab{position:fixed;right:14px;z-index:22;width:48px;height:48px;border-radius:50%;border:1px solid hsl(var(--c3)/.45);background:radial-gradient(circle at 30% 25%,hsl(var(--c3)/.55),hsl(var(--c1)/.45) 55%,hsl(var(--c2)/.9));color:#fff;display:grid;place-items:center;cursor:pointer;box-shadow:0 0 18px hsl(var(--c1)/.5),inset 0 0 12px hsl(var(--c3)/.35);backdrop-filter:blur(12px);transition:transform .3s,box-shadow .6s,background .6s}
+.fab:active{transform:scale(.9)}.fab svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;transition:transform .4s}
+#fm,#fc{display:none!important}#fm{bottom:calc(142px + env(safe-area-inset-bottom,0px))}#fc{bottom:calc(80px + env(safe-area-inset-bottom,0px))}
+#fm.open svg{transform:rotate(90deg)}
+.gp{position:fixed;z-index:24;right:12px;left:12px;max-width:380px;margin-left:auto;border-radius:28px;padding:16px;background:linear-gradient(160deg,hsl(var(--c1)/.3),hsl(var(--c2)/.82));border:1px solid hsl(var(--c3)/.35);backdrop-filter:blur(26px) saturate(1.5);-webkit-backdrop-filter:blur(26px) saturate(1.5);box-shadow:0 14px 44px rgba(0,0,0,.55),0 0 30px hsl(var(--c1)/.25),inset 0 0 22px hsl(var(--c3)/.1);opacity:0;transform:translateY(18px) scale(.96);pointer-events:none;transition:opacity .3s,transform .35s cubic-bezier(.2,.9,.3,1.2)}
+.gp.on{opacity:1;transform:none;pointer-events:auto}
+#mp{bottom:calc(86px + env(safe-area-inset-bottom,0px));left:50%;right:auto;width:calc(100% - 24px);transform:translate(-50%,18px) scale(.96);margin:0}#mp.on{transform:translate(-50%,0)}
+.mh{display:flex;align-items:center;gap:12px;margin-bottom:12px}.mo{width:38px;height:38px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#fff,hsl(var(--c3)) 35%,hsl(var(--c1)) 75%);box-shadow:0 0 18px hsl(var(--c3)/.8);animation:mb 3s ease-in-out infinite}@keyframes mb{50%{transform:scale(1.12);box-shadow:0 0 28px hsl(var(--c3))}}
+.mo{object-fit:cover;border-radius:30%!important;width:44px!important;height:44px!important;background:none!important;filter:hue-rotate(calc(var(--hs)*.55deg)) saturate(1.1);border:1px solid hsl(var(--c3)/.6)}.av{width:64px;height:64px;border-radius:30%;object-fit:cover;flex:none;border:1px solid hsl(var(--c3)/.7);box-shadow:0 0 22px hsl(var(--c3)/.6);filter:hue-rotate(calc(var(--hs)*.55deg));animation:mb 3.5s ease-in-out infinite}.sh{display:flex;align-items:center;gap:14px;margin-bottom:8px}.sh b{display:block;font:600 18px var(--ui);letter-spacing:.35em;color:var(--txt)}.sh small{font:12px var(--ui);color:var(--dim)}.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#5f9;box-shadow:0 0 8px #5f9;margin-right:6px}.dot.off{background:#f65;box-shadow:0 0 8px #f65}
+.mh b{display:block;font:600 14px var(--ui);letter-spacing:.3em;color:var(--txt)}.mh small{font:12px var(--ui);color:var(--dim)}
+.gl{font:600 10px var(--ui);letter-spacing:.2em;color:var(--dim);text-transform:uppercase;margin:12px 2px 8px}
+.lg3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.lg3 button{border:1px solid hsl(var(--c3)/.28);background:hsl(var(--c1)/.16);color:var(--txt);border-radius:18px;padding:10px 2px 8px;cursor:pointer;transition:.3s}.lg3 button i{display:block;font:normal 600 22px var(--ui);margin-bottom:2px}.lg3 button span{font:11px var(--ui);color:var(--dim)}
+.lg3 button.on,.mg button.on{background:hsl(var(--c1)/.5);border-color:hsl(var(--c3)/.8);box-shadow:0 0 16px hsl(var(--c3)/.5)}
+.mg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.mg button{border:1px solid hsl(var(--c3)/.22);background:hsl(var(--c1)/.12);border-radius:18px;padding:8px 0 6px;cursor:pointer;color:var(--dim);font:10px var(--ui);transition:.3s}.mg button i{display:grid;place-items:center;width:34px;height:34px;margin:0 auto 3px;border-radius:50%;font-style:normal;font-size:17px;background:var(--sw);box-shadow:0 0 12px var(--sw)}
+#chat{position:fixed;z-index:25;left:10px;right:10px;top:calc(60px + env(safe-area-inset-top,0px));bottom:calc(78px + env(safe-area-inset-bottom,0px));max-width:560px;margin:0 auto;display:flex;flex-direction:column;border-radius:28px;overflow:hidden;background:linear-gradient(170deg,hsl(var(--c1)/.28),hsl(var(--c2)/.9));border:1px solid hsl(var(--c3)/.35);backdrop-filter:blur(28px) saturate(1.5);-webkit-backdrop-filter:blur(28px) saturate(1.5);box-shadow:0 18px 60px rgba(0,0,0,.6),0 0 34px hsl(var(--c1)/.25);opacity:0;transform:translateY(30px) scale(.97);pointer-events:none;transition:opacity .3s,transform .4s cubic-bezier(.2,.9,.3,1.1)}
+#chat.on{opacity:1;transform:none;pointer-events:auto}#chat .mh{padding:14px 16px 0;margin:0}#chat .x{margin-left:auto;background:hsl(var(--c1)/.25);border:1px solid hsl(var(--c3)/.3);color:#fff;width:34px;height:34px;border-radius:50%;cursor:pointer;display:grid;place-items:center}#chat .x svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
+#cm{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:9px;touch-action:pan-y}
+.b{max-width:82%;padding:9px 13px;border-radius:18px;font:14px/1.4 var(--ui);color:var(--txt);animation:bi .35s both;word-wrap:break-word;white-space:pre-wrap}@keyframes bi{from{opacity:0;transform:translateY(8px) scale(.96)}}
+.b.u{align-self:flex-end;background:linear-gradient(135deg,hsl(var(--c1)/.85),hsl(var(--c3)/.55));border-bottom-right-radius:5px;box-shadow:0 4px 14px hsl(var(--c1)/.35)}
+.b.a{align-self:flex-start;background:hsl(var(--c2)/.75);border:1px solid hsl(var(--c3)/.25);border-bottom-left-radius:5px}
+.b.t{display:flex;gap:4px;padding:12px 14px}.b.t s{width:7px;height:7px;border-radius:50%;background:hsl(var(--c3));animation:td 1s infinite}.b.t s:nth-child(2){animation-delay:.15s}.b.t s:nth-child(3){animation-delay:.3s}@keyframes td{40%{transform:translateY(-5px);opacity:.4}}
+#cf{display:flex;gap:8px;padding:10px 12px 12px;border-top:1px solid hsl(var(--c3)/.2)}#ci{flex:1;min-width:0;border-radius:99px;border:1px solid hsl(var(--c3)/.35);background:#0004;color:var(--txt);padding:11px 16px;font:15px var(--ui);outline:0}#ci:focus{border-color:hsl(var(--c3));box-shadow:0 0 14px hsl(var(--c3)/.4)}
+#cs{width:44px;height:44px;border-radius:50%;border:0;cursor:pointer;color:#fff;display:grid;place-items:center;background:radial-gradient(circle at 30% 25%,hsl(var(--c3)),hsl(var(--c1)));box-shadow:0 0 14px hsl(var(--c1)/.6)}#cs svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+</style>
+<button id="fm" class="fab" aria-label="Menu"><svg viewBox="0 0 24 24"><circle cx="6.5" cy="6.5" r="1.6"/><circle cx="17.5" cy="6.5" r="1.6"/><circle cx="6.5" cy="17.5" r="1.6"/><circle cx="17.5" cy="17.5" r="1.6"/><circle cx="12" cy="12" r="1.6"/></svg></button>
+<button id="fc" class="fab" aria-label="Chat"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/><path d="M8.5 9.5h7M8.5 12.5h4"/></svg></button>
+<div id="mp" class="gp" role="dialog" aria-label="Menu"><div class="mh"><img class="mo" src="alisa.png" alt="ALISA"><div><b>ALISA</b><small id="mq"></small></div></div>
+<div class="gl">Language · भाषा</div><div class="lg3" id="lgs"><button data-l="hi"><i>अ</i><span>हिन्दी</span></button><button data-l="en"><i>A</i><span>English</span></button><button data-l="hg"><i>अA</i><span>Hinglish</span></button></div>
+<div class="gl">Mood</div><div class="mg" id="mgs"></div></div>
+<div id="chat" role="dialog" aria-label="Chat"><div class="mh"><img class="mo" src="alisa.png" alt="ALISA"><div><b>ALISA</b><small id="cq"></small></div><button class="x" id="cx" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div><div id="cm"></div>
+<div id="cf"><input id="ci" autocomplete="off" enterkeyhint="send"><button id="cs" aria-label="Send"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div></div>
+<script>
+if(!CanvasRenderingContext2D.prototype.roundRect)CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){r=Math.min(r,w/2,h/2);this.moveTo(x+r,y);this.arcTo(x+w,y,x+w,y+h,r);this.arcTo(x+w,y+h,x,y+h,r);this.arcTo(x,y+h,x,y,r);this.arcTo(x,y,x+w,y,r);this.closePath()};
+function wide(){return matchMedia('(min-width:760px) and (orientation:landscape)').matches}
+const SRC='<!DOCTYPE html>\n'+document.documentElement.outerHTML;
+const $=s=>document.querySelector(s),cv=$('#c'),x=cv.getContext('2d'),say=$('#say');
+let W,H,D,cx,cy,R,bcy,bR,OY,TBT,OB,t=0,mode=null,mt=0,voice=0,dark=0,energy=0,lvl=0,sel=-1;
+const rnd=(a,b)=>a+Math.random()*(b-a),TAU=6.2832;
+const off=document.createElement('canvas'),oc=$('#orb'),ox=oc.getContext('2d');let BGC='#030817',BGA=.2,GL=1;
+function size(){D=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;TBT=$('#tb').getBoundingClientRect().top;OY=wide()?H*.87:Math.min(H*.87,TBT-62);$('#sheet').style.bottom=wide()?'':(H-(OY-8-Math.max(18,H*.028)*.8-34))+'px';cv.width=W*D;cv.height=H*D;x.setTransform(D,0,0,D,0,0);cx=W/2;bcy=cy=H*.42;bR=R=wide()?Math.min(H*.235,W*.175):Math.min(W*.39,H*.255);if(wide())bcy=cy=H*.43;oc.width=W*D;oc.height=H*D;
+ off.width=W;off.height=H;const o=off.getContext('2d');o.fillStyle=BGC;o.fillRect(0,0,W,H);
+ [[.2,.2,.7,'70,50,190'],[.8,.3,.6,'20,90,200'],[.5,.55,.55,'120,40,170'],[.25,.8,.6,'20,130,170'],[.85,.85,.5,'60,50,200']].forEach(([a,b,r,c])=>{const g=o.createRadialGradient(a*W,b*H,0,a*W,b*H,r*Math.max(W,H)*.6);g.addColorStop(0,`rgba(${c},${BGA})`);g.addColorStop(1,`rgba(${c},0)`);o.fillStyle=g;o.fillRect(0,0,W,H)});
+ const pr=W*1.7,py=H*.9+pr*0,top=OY;o.save();o.beginPath();o.arc(cx,top+pr,pr,0,TAU);o.clip();
+ let pg=o.createRadialGradient(cx,top+pr,pr*.9,cx,top+pr,pr);pg.addColorStop(0,'#03061a');pg.addColorStop(.9,'#0a1c55');pg.addColorStop(1,'#3a7bff');o.fillStyle=pg;o.fillRect(0,top-4,W,H);
+ for(let i=0;i<70;i++){o.fillStyle=`rgba(255,${190+i%50},120,${.2+Math.random()*.5})`;o.fillRect(Math.random()*W,top+8+Math.random()*(H-top),1.4,1.4)}o.restore();
+ o.strokeStyle='rgba(120,180,255,.22)';o.lineWidth=1.2;o.shadowColor='rgba(77,163,255,.3)';o.shadowBlur=6;o.beginPath();o.arc(cx,top+pr,pr,4.3,5.12);o.stroke();o.shadowBlur=0}
+addEventListener('resize',size);size();
+// universe
+const bg=[...Array(260)].map(()=>({x:Math.random(),y:Math.random(),s:rnd(.4,1.6),z:rnd(.2,1),p:rnd(0,TAU)}));
+const gal=[...Array(1500)].map((_,i)=>{const disc=i%10<6,r=disc?Math.pow(Math.random(),.7):Math.abs(rnd(-1,1)+rnd(-1,1))*.45;return{disc,r,a:Math.random()*TAU+(disc?r*5.2+(i%3)*2.09:0),h:disc?200+r*90+rnd(-20,20):rnd(180,300),s:rnd(.5,1.9),y:disc?0:rnd(-.6,.6)*r,p:rnd(0,TAU)}});
+const rings=[...Array(5)].map((_,i)=>({b:.55+i*.16,ph:i*1.7,sp:.12+i*.05,tilt:i*.7}));
+const nodes=[['Memory',210],['Vision',275],['Agents',330],['Knowledge',35],['Voice',95],['Chat',150],['Menu',300],['Status',185]].map(([n,h],i)=>({n,h,a:i*TAU/8,tr:[]}));
+const data={
+ Memory:['Yesterday · deep work','A walk by the sea','Nova’s first idea','Late night notes','Your favourite song','New year, new plans','The day we met'],
+ Knowledge:['Physics','Language','Art','Code','Biology','Music','History','Ethics','Math'],
+ Agents:['Memory','Knowledge','Math','Time','Tasks','Diagnostics']};
+let items=[],ripples=[],words=[];
+function fmt(m){items=(data[m]||[]).map((n,i,a)=>({n,a:i*TAU/a.length+rnd(0,.5),r:rnd(.7,1.25),ph:rnd(0,TAU),h:m=='Memory'?40:m=='Agents'?[200,280,170,90,150,320][i%6]:220}))}
+function speak(a,b){say.innerHTML=a+(b?'<small>'+b+'</small>':'');say.classList.remove('on');void say.offsetWidth;say.classList.add('on')}
+function hush(){say.classList.remove('on')}
+// input
+function pick(px,py){let best=-1,bd=54;nodes.forEach((n,i)=>{const d=Math.hypot(n.x-px,n.y-py);if(d<bd){bd=d;best=i}});return best}
+document.addEventListener('pointerdown',e=>{if(e.target.closest('#tb,#pop,#sheet,#dock,#L,#Rr,button,a'))return;const n=pick(e.clientX,e.clientY);
+ if(n>=0){choose(nodes[n].n,n)}
+ else if(Math.hypot(e.clientX-cx,e.clientY-cy)<R*1.05){energy=1;ripples.push({r:0,a:1});if(mode&&mode!='Voice'){mode=null;sel=-1;hush()}else if(!mode)speak('I’m here.','Touch a light to begin');sync();buzz(10)}});
+let choose=function(n,i){if(mode=='Voice'&&n!='Voice')stopVoice();
+ if(mode==n&&n=='Voice'&&!rec){try{speechSynthesis.cancel()}catch(e){}idleTries=0;startVoice();return}
+ if(mode==n){mode=null;sel=-1;hush();stopVoice();return}
+ mode=n;sel=i;mt=0;energy=1;ripples.push({r:0,a:1});
+ if(n=='Voice'){startVoice()}else{fmt(n);speak(n,n=='Memory'?'Unfolding from the core':n=='Vision'?'Looking outward':n=='Agents'?'Materializing':'Connecting ideas')}};
+// panels
+const r_=(a,b,c)=>`<div class=r><span>${a}<i>${b||''}</i></span><em>${c||''}</em></div>`,st=(a,k)=>`<div class=ms><canvas class=mini width=250 height=150 data-k=${k}></canvas><div class=sv>${a.map(([m,n])=>`<div><b>${m}</b>${n}</div>`).join('')}</div></div>`,hd=(a,b,i)=>`<div class=hh><span class=ib><i class=ic>${i}</i></span><div><h2>${a}</h2><p>${b}</p></div><span class=chev>›</span></div>`,sec=a=>`<div class=sec>${a}</div>`;
+const env=[['💡','Lighting','72%'],['🌡','Temp','22°C'],['🎵','Music','Ambient'],['🎯','Focus','On']];
+const C={
+ Memory:()=>hd('Memory Network','Your past. Your experiences. Your growth.','🧠')+st([['2.4M','Memories'],['18K','Important'],['99.8%','Accessible']],7),
+ Comm:()=>hd('Communications','Messages · Calls · Collaboration','💬')+r_('Nova','Hey! The research looks amazing 🚀','5m')+r_('Rohan','Can you review the 3D model?','18m')+r_('Team ALISA','Project update in 30 minutes.','32m'),
+ Knowledge:()=>hd('Knowledge Graph','Connecting ideas. Building understanding.','🕸')+st([['8.7M','Concepts'],['342K','Relations'],['12K','New today']],19),
+ Notif:()=>hd('Notifications','Important updates','🔔')+r_('Research completed','AI safety and alignment','2m')+r_('New message','From Nova','12m')+r_('System optimized','Performance improved by 18%','24m'),
+ Agents:()=>window.ALISAAgentUI?ALISAAgentUI.cardHTML():hd('Running AI Agents','Autonomous. Collaborative. Working for you.','🤖')+[['Research','Analyzing data…','#4da3ff'],['Creative','Generating visuals…','#a06bff'],['Productivity','Managing tasks…','#3dd6c8'],['Environment','Optimizing your space…','#b6ff3d']].map(a=>r_(`<span class=dot style="color:${a[2]}"></span>${a[0]} Agent`,'',a[1])).join(''),
+ Tasks:()=>hd('Active Tasks','5 in progress','✔')+['Create 3D model for ALISA interface','Analyze latest research papers','Generate animation storyboard','Optimize system performance','Plan tomorrow’s schedule'].map((a,i)=>r_('✔ '+a,'',[2,6,12,18,25][i]+'m')).join(''),
+ Cal:()=>hd('Calendar','Your time. Optimized.','📅')+r_('Deep Work Session','','23:00')+r_('Team Sync','','01:00')+r_('Personal Time','','08:00')+r_('Project Review','','12:00'),
+ Env:()=>hd('Smart Environment Controls','Your world. In harmony.','🏠')+`<div class=tiles>${env.map((e,i)=>`<button class="tile${i==3?' on':''}"><em>${e[0]}</em>${e[1]}<br><span style="color:var(--dim)">${e[2]}</span></button>`).join('')}</div>`};
+const panels={Status:()=>statusPanel(),Memory:()=>sec(C.Memory())+sec(C.Comm()),Knowledge:()=>sec(C.Knowledge())+sec(C.Notif()),Agents:()=>window.ALISAAgentUI?ALISAAgentUI.agentCenterHTML():sec(C.Agents())+sec(C.Tasks()),Vision:()=>sec(C.Cal())+sec(C.Env())};
+function minis(r){r.querySelectorAll('canvas.mini').forEach(c=>{const g=c.getContext('2d'),w=c.width,h=c.height;let q=+c.dataset.k;const r_=()=>(q=q*16807%2147483647)/2147483647,n=[...Array(22)].map(()=>[10+r_()*(w-20),10+r_()*(h-20),r_()]);g.lineWidth=1;n.forEach((a,i)=>n.forEach((b,j)=>{if(j>i&&Math.hypot(a[0]-b[0],a[1]-b[1])<w*.3){g.strokeStyle='rgba(130,175,255,.5)';g.beginPath();g.moveTo(a[0],a[1]);g.lineTo(b[0],b[1]);g.stroke()}}));g.shadowColor='#4da3ff';g.shadowBlur=10;n.forEach(a=>{g.fillStyle=`hsl(${200+a[2]*100},100%,75%)`;g.beginPath();g.arc(a[0],a[1],2+a[2]*3,0,6.3);g.fill()});const k=g.createRadialGradient(w/2,h/2,0,w/2,h/2,w*.25);k.addColorStop(0,'rgba(255,255,255,.9)');k.addColorStop(1,'rgba(80,130,255,0)');g.fillStyle=k;g.fillRect(0,0,w,h)})}
+const M={Memory:'Memory',Knowledge:'Knowledge',Agents:'Agents',Env:'Vision'},card=f=>`<section class=card data-m="${M[f]||''}">${C[f]()}</section>`;
+$('#L').innerHTML=['Tasks','Memory','Knowledge','Agents'].map(card).join('');$('#Rr').innerHTML=['Notif','Comm','Cal','Env'].map(card).join('');
+[$('#L'),$('#Rr')].forEach(e=>e.onclick=ev=>{const b=ev.target.closest('.tile');if(b){b.classList.toggle('on');buzz(10);return}const c=ev.target.closest('.card');if(c&&c.dataset.m)choose(c.dataset.m,nodes.findIndex(n=>n.n==c.dataset.m))});minis(document);
+const sheet=$('#sheet');const repaintSheet=()=>{if(!mode||!panels[mode])return;const y=sheet.scrollTop;sheet.innerHTML=panels[mode]();minis(sheet);sheet.scrollTop=y};
+addEventListener('alisaagent:tools',()=>{if(mode=='Agents')repaintSheet()});addEventListener('alisastatus:update',()=>{if(mode=='Status')repaintSheet();if(popOpen=='status')renderStatus()});addEventListener('alisacommands:change',()=>{});
+sheet.onclick=e=>{if(window.ALISAAgentUI&&ALISAAgentUI.handleClick(e,repaintSheet))return;const b=e.target.closest('.tile');if(b){b.classList.toggle('on');buzz(10)}};
+function dockSync(){document.querySelectorAll('#dock [data-m]').forEach(b=>b.classList.toggle('act',b.dataset.m==mode&&b.id!='mic2'));$('#mic2').classList.toggle('on',mode=='Voice')}
+function sync(){dockSync();if(mode=='Status'&&window.ALISAStatus)ALISAStatus.snapshot().catch(()=>{});if(wide()&&mode!='Status'){sheet.classList.remove('open');return}if(mode&&panels[mode]){sheet.innerHTML=panels[mode]();minis(sheet);sheet.scrollTop=0;sheet.classList.add('open');hush()}else sheet.classList.remove('open')}
+const choose0=choose;choose=(n,i)=>{if(n=='Chat'){$('#fc').click();buzz(14);return}if(n=='Menu'){$('#fm').click();buzz(14);return}if(n!='Status'&&mode!='Status'&&0){}choose0(n,i);sync();buzz(14)};
+function tick(){const n=new Date();$('#ck').textContent=n.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false});$('#dt').textContent=n.toLocaleDateString([],{weekday:'short',day:'numeric',month:'short',year:'numeric'})}tick();setInterval(tick,15000);
+// voice
+let rec=null,vt=0;
+// ---- My Voice: speaker verification UI (engine in security.js) ----
+const SEC=window.ALISASecurity||new Proxy({},{get(){throw new Error('security.js did not load — reload the page or clear this site’s data, then try again')}}),SEC_OK=!!window.ALISASecurity,SM={listening:['LISTENING','Speak naturally','listening',0],verifying:['VERIFYING','Comparing voice embedding','verifying',0],verified:['VERIFIED','Speaker verification passed','verified',1500],'not-recognized':['NOT RECOGNIZED','Command not executed','error',2600],uncertain:['UNCERTAIN','','error',2600],unavailable:['UNABLE TO VERIFY','','error',2600],retry:['TRY AGAIN','','error',1200]};
+function secState(st,sub){const m=SM[st];if(!m)return;speak(m[0],sub||m[1]);setRing(m[2],m[3])}
+const swSync=()=>document.querySelectorAll('.sw').forEach(b=>b.classList.toggle('on',!!prefs[b.dataset.k]));
+async function vSync(){if(!SEC_OK){const m=$('#vmsg');if(m)m.textContent='Voice security module failed to load (security.js). Reload the page or clear site data.';return}SEC.config.sens=prefs.vsens;SEC.config.devMode=!!prefs.vdev;const i=await SEC.info(),L=i.last,T=(id,v)=>$(id).textContent=v;prefs.vstrict=!!i.strict;swSync();
+ $('#mvs').classList.toggle('act',i.verified);T('#mvt',i.verified?'VERIFIED':'NOT VERIFIED');T('#mvm',i.method=='neural'?'Neural':'Fallback');T('#mvl',i.assurance);$('#mvl').classList.toggle('warn',i.assurance!='HIGH');
+ T('#vst',i.enrolled?'Enrolled · '+new Date(i.t).toLocaleDateString():'Not enrolled');$('#venr').disabled=i.enrolled;$('#vren').disabled=!i.enrolled;
+ T('#r1',L?L.status.toUpperCase()+(L.lowAssurance&&L.status=='verified'?' (LOW ASSURANCE)':''):'—');T('#r2',L&&L.score!=null?L.score.toFixed(2):'—');T('#r3',L&&L.threshold!=null?L.threshold.toFixed(2):'—');T('#r4',L?L.method:'—');T('#r5',L?(L.spoofFlags.length?'SUSPICIOUS · '+L.spoofFlags.join(', '):'No replay signs (heuristic only)'):'—');
+ T('#veng',i.model.state=='loaded'?'Neural speaker model ready ['+i.model.code+' · '+i.model.sha+'] · load '+(i.perf.loadMs==null?'—':i.perf.loadMs+' ms')+' · last check '+(i.perf.inferMs==null?'—':i.perf.inferMs+' ms'):'Neural speaker model NOT ready ['+i.model.code+']: '+i.model.reason+'. Strict Voice Lock keeps voice commands locked; sensitive commands need your passcode.');
+ $('#vdev').hidden=!prefs.vdev;document.querySelectorAll('#vsens button').forEach(b=>b.classList.toggle('on',+b.dataset.s==prefs.vsens))}
+let vBusy=false,session=null;
+async function voiceAction(k){if(vBusy)return;const bar=$('#vbar'),fill=bar.firstChild,msg=$('#vmsg');
+ if(!SEC_OK){msg.textContent='Voice security module failed to load (security.js). Reload the page or clear this site’s data.';return}
+ if(k=='reset'){vBusy=true;try{const r=await SEC.resetSecurity();msg.textContent=r.text;if(r.ok){prefs.vlock=false;savePrefs();swSync();session=null;toast('Voice security reset')}}catch(e){console.error(e);msg.textContent='Reset error: '+(e.message||e)}finally{vBusy=false;vSync()}return}
+ if(k=='remove'){if((await SEC.has())&&confirm('Delete your voice profile? The voice reference and backup passcode will be erased.')){await SEC.deleteVoiceProfile();prefs.vlock=false;savePrefs();swSync();msg.textContent='Voice profile deleted.';session=null}vSync();return}
+ vBusy=true;
+ try{if(k=='selftest'){msg.textContent='Running self-test (synthetic audio)…';const R=await SEC.selfTest();$('#vdevout').innerHTML=R.map(r=>`<div class="mvr"><span>${r.pass===null?'–':r.pass?'✓':'✗'} ${r.id} · ${r.name}</span><b>${r.actual}</b></div>`).join('');msg.textContent=R.filter(r=>r.pass===true).length+' passed · '+R.filter(r=>r.pass===false).length+' failed · A/B need real voices';return}
+  bar.hidden=false;fill.style.width='0';
+  if(k=='test'){if(!(await SEC.has())){msg.textContent='Please enroll your voice first.';return}const r=await SEC.verify({onState:secState,onProgress:p=>fill.style.width=p*100+'%'});msg.textContent=r.reason+(r.score!=null?' (similarity '+r.score.toFixed(2)+', threshold '+r.threshold.toFixed(2)+')':'');if(r.status=='verified')setRing('verified',2200)}
+  else{msg.textContent='Enrolling — speak each phrase live.';const r=await SEC.enrollVoice({onState:secState,onProgress:(i,n,ph,p)=>{fill.style.width=((i+p)/n*100)+'%';msg.textContent='Sample '+(i+1)+' of '+n+' — say: “'+ph+'”'}});msg.textContent=r.text;if(r.ok){prefs.vlock=true;savePrefs();swSync();toast('Voice profile created');setRing('verified',1500)}else setRing('error',1500)}
+ }catch(e){console.error(e);msg.textContent='Voice security error: '+(e.message||e)}finally{vBusy=false;vSync();if(mode!='Voice')hush();setTimeout(()=>{if(!vBusy)bar.hidden=true},1800)}}
+// Pipeline: Mic → quality → embedding → anti-replay → similarity → status → speech recognition → command processor → permission → action → TTS
+async function startVoice(){busy=false;idleHalt=false;vstart=true;try{await startVoice0()}finally{vstart=false}}
+// Phase 3.1.1 Strict Voice Lock: a FRESH neural speaker check precedes EVERY voice command (one verification → one command). Fails closed; at most 3 attempts, then Voice mode ends.
+let svFails=0;const svExit=(t,sub)=>{session=null;idleHalt=true;speak(t,sub);setTimeout(()=>{if(mode=='Voice'){mode=null;sel=-1;sync();speak('How can I help?')}},2800)};
+async function strictVoice0(){if(!SEC_OK)return svExit('VOICE LOCKED','Voice security did not load');
+ if(!(await SEC.has())){svFails=0;return svExit('VOICE LOCKED','Enroll your voice in Settings → My Voice')}
+ const r=await SEC.verify({onState:(st,sub)=>secState(st,st=='uncertain'||st=='unavailable'?'Couldn’t verify — command not executed':sub)});if(mode!='Voice')return;session=r;
+ if(SEC.hasVoiceGrant()){svFails=0;await new Promise(x=>setTimeout(x,250));if(mode=='Voice')listenNow();return}
+ if(r.status=='not-recognized'||r.lowAssurance||r.method!='neural'||r.code||++svFails>=3){svFails=0;return svExit(r.code=='PROFILE_MODEL_MISMATCH'?'RE-ENROLL VOICE':(r.lowAssurance||r.method!='neural'||r.code)?'VOICE LOCKED':'NOT RECOGNIZED',r.code=='PROFILE_MODEL_MISMATCH'?'Voice model changed — Settings → My Voice':'Command not executed')}
+ speak('TRY AGAIN','Command not executed');await new Promise(x=>setTimeout(x,1500));if(mode=='Voice')return strictVoice0()}
+async function startVoice0(){if(!SEC_OK||(await SEC.has(),SEC.strictActive()))return strictVoice0();
+ if(!(prefs.vlock&&await SEC.has())){session=null;return listenNow()}
+ const r=await SEC.verify({onState:secState});if(mode!='Voice')return;session=r;
+ if(r.status=='not-recognized'){speak('NOT RECOGNIZED','Command not executed');setTimeout(()=>{if(mode=='Voice'){mode=null;sel=-1;sync();speak('How can I help?')}},2800);return}
+ if(r.status!='verified'||r.lowAssurance)speak(r.status=='verified'?'LOW ASSURANCE':r.status.toUpperCase(),r.reason+' · Sensitive commands need your passcode');await new Promise(x=>setTimeout(x,r.status=='verified'&&!r.lowAssurance?250:2000));if(mode=='Voice')listenNow()}
+let idleTries=0,errTries=0,busyT=0,busy=false,vstart=false,idleHalt=false,recT=0;
+function listenNow(){if(!SEC_OK||(SEC.strictActive()&&!SEC.hasVoiceGrant())){if(!idleHalt&&!vstart&&!vBusy&&mode=='Voice')startVoice();return}   // Strict Voice Lock: never listen for a command without a fresh verification
+ if(rec){if(performance.now()-recT>12000){try{rec.abort()}catch(e){}rec=null}else return}busy=false;idleHalt=false;speak('Listening…');const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!SR){speak('Speech recognition isn’t supported in this browser','Use Chrome');setRing('error',3500);return}
+ let heard='',fatal=false,transient=false,done=false,sil=0,grace=0,me;
+ const finish=()=>{if(done)return;done=true;clearTimeout(sil);clearTimeout(grace);try{me.stop()}catch(e){}if(rec===me)rec=null;if(mode!='Voice')return;if(heard){idleTries=0;errTries=0;reply(heard)}else if(++idleTries<30)setTimeout(()=>{if(mode=='Voice'&&!rec&&!busy)listenNow()},250);else{idleTries=0;idleHalt=true;speak('I’m here.','Tap Voice to talk again')}};
+ try{me=rec=new SR();recT=performance.now();me.lang=LANGCODE();me.interimResults=true;me.continuous=false;
+  me.onresult=e=>{heard=[...e.results].map(r=>r[0].transcript).join(' ').trim();if(heard)speak(heard);clearTimeout(sil);const last=e.results[e.results.length-1];
+   if(last&&last.isFinal)finish();else if(heard)sil=setTimeout(()=>{try{me.stop()}catch(x){}clearTimeout(grace);grace=setTimeout(finish,1200)},1500)};   // after ~1.5s silence ask Chrome to stop, then WAIT for its final result so the last word isn't lost   // reply as soon as the result is final, or after ~1.1s of silence — don't wait for Chrome to close the mic
+  me.onerror=e=>{if(e.error=='no-speech'||e.error=='aborted')return;if(e.error!='network'&&e.error!='not-allowed'&&e.error!='service-not-allowed'&&errTries<4){errTries++;transient=true;return}fatal=true;done=true;setRing('error',3500);
+   speak(e.error=='network'?'Speech recognition needs internet':e.error=='not-allowed'||e.error=='service-not-allowed'?'Microphone blocked':'Couldn’t hear you',e.error=='network'?'Chrome sends voice to Google for recognition. Reconnect, then tap Voice.':e.error=='not-allowed'||e.error=='service-not-allowed'?'Allow the microphone for this site, then tap Voice.':'Tap Voice to try again')};
+  me.onend=()=>{if(rec===me)rec=null;if(mode!='Voice'||fatal)return;if(transient&&!heard){done=true;setTimeout(()=>{if(mode=='Voice'&&!rec&&!busy)listenNow()},500);return}finish()};
+  me.start()}catch(e){rec=null;console.warn('[ALISA] recognition start failed, retrying',e);setTimeout(()=>{if(mode=='Voice'&&!rec&&!busy)listenNow()},600)}}
+// watchdog: if a browser event is ever missed (TTS end, recognition end), ALISA still returns to listening
+setInterval(()=>{if(busy&&performance.now()-busyT>60000){console.warn('[ALISA] busy stuck, resetting');busy=false;try{speechSynthesis.cancel()}catch(e){}}if(mode!='Voice'||busy||vstart||vBusy||idleHalt)return;if(rec&&performance.now()-recT>20000){try{rec.abort()}catch(e){}rec=null}if(!rec)listenNow()},1500);
+function stopVoice(){if(rec){try{rec.abort()}catch(e){}rec=null}try{SEC.invalidate()}catch(e){}}
+const pickVoice=()=>{try{const v=speechSynthesis.getVoices(),l=LANGCODE().toLowerCase(),L=x=>x.lang.toLowerCase().replace('_','-'),loc=v.filter(x=>x.localService),pool=loc.some(x=>L(x)==l||L(x).startsWith(l.slice(0,2)))?loc:v;return pool.find(x=>L(x)==l&&/natural|neural|enhanced|premium|google/i.test(x.name))||pool.find(x=>L(x)==l)||pool.find(x=>L(x).startsWith(l.slice(0,2)))||null}catch(e){return null}};   // prefer on-device voices: network voices add seconds before speech starts
+const tts=(t,done)=>{let f=false,started=false,iv=0;const go=()=>{if(!f){f=true;clearInterval(iv);done&&done()}};setTimeout(go,Math.min(45000,String(t).length*110+4000));   // safety net only — real end comes from speech events
+ try{if(window.speechSynthesis){const S=speechSynthesis;S.cancel();const u=new SpeechSynthesisUtterance(t),v=pickVoice();u.rate=.96;u.pitch=1;u.volume=1;if(v){u.voice=v;u.lang=v.lang}else u.lang=LANGCODE();   // rate .96 = natural pace
+  const tq=performance.now();u.onstart=()=>{started=true;console.log('[ALISA] voice started in',Math.round(performance.now()-tq),'ms')};u.onend=u.onerror=go;S.speak(u);const t0=performance.now();
+  iv=setInterval(()=>{const a=performance.now()-t0;if(S.speaking||S.pending){started=true;return}if((started&&a>600)||a>3500)go()},200);return}}catch(e){console.warn('TTS failed',e)}go()};
+const reply=q=>{busy=true;busyT=performance.now();return commandProcessor({transcript:q,speakerVerification:session}).catch(e=>{console.error('[ALISA] command failed',e);if(mode!='Voice')return;setRing('error',2000);speak('Something went wrong',String(e&&e.message||e).slice(0,90));busy=false;setTimeout(()=>{if(mode=='Voice'&&!rec)listenNow()},1500)})};
+// Phase 3.1 Agent Core: asked ONLY after every existing handler (credential stop, brain control, ALISACommands, memory commands, sensitive gate) declined the request, so Phase 2.5 behaviour is unchanged.
+// Kill switch: localStorage 'alisa-agent'='0'. If the agent has no tool for the request it answers {handled:false} and the ALISA Brain replies exactly as before.
+window.ALISAAgentRoute=async function(q,source){if(!window.ALISAAgentCore)return null;try{if(localStorage.getItem('alisa-agent')==='0')return null}catch(e){}
+ try{return await Promise.race([ALISAAgentCore.process(q,{source}),new Promise(r=>setTimeout(()=>r(null),8000))])}catch(e){console.warn('[ALISA] agent failed',e);return null}};
+// Phase 3.1.1 Strict Voice Lock gate: runs BEFORE credential stop, Brain, Agent Core, tools or memory. No grant → nothing executes. The grant is consumed on entry and everything is cleared in finally (success, failure, cancel).
+async function commandProcessor(a){let g;try{g=await SEC.authorizeVoiceCommand()}catch(e){g=null}
+ if(!g||!g.ok){const t='I need to verify your voice first — command not executed.';try{setRing('error',1500);speak(t,'Voice not authorized')}catch(e){}tts(t,()=>{busy=false;if(mode=='Voice')setTimeout(()=>{if(mode=='Voice'&&!rec)listenNow()},120)});return}
+ try{return await commandProcessorInner(a)}finally{try{SEC.invalidateVoiceAuth()}catch(e){}}}
+async function commandProcessorInner({transcript:q,speakerVerification:sv}){const l=q.toLowerCase(),MD=window.ALISAMind,MI=window.ALISAMemoryIntelligence,sens=!!(MI&&MI.isSensitive(q)),
+ vs=!sens&&/\b(?:(?:voice|speaker)\s+(?:lock|security|verification|authentication|check|profile|threshold|model|id|print)|enrolled\s+(?:voice|speaker))\b/i.test(q)&&/\b(?:off|disable|disabled|stop|turn|switch|change|lower|raise|reset|replace|re-?enroll|delete|remove|set|bypass|skip)\b/i.test(q),   // voice can never change voice-security settings
+ mc=!sens&&!vs&&MD&&MD.commands.parse(q);let out,sub='ALISA',wait=120;   // Phase 2.5: credentials are stopped here — never stored, embedded, synced or sent to the AI
+ const hint=async()=>{try{if(!MI)return'';const r=await Promise.race([MI.process(q,{source:'voice-command'}),new Promise(z=>setTimeout(()=>z(null),800))]);return r&&r.prompt?' '+r.prompt:''}catch(e){return''}};   // implicit statements: at most a "Would you like me to remember that?" suggestion
+ const think=async()=>{const tt=performance.now();setRing('thinking',0);speak('Thinking…');const r=await Promise.race([ALISABrain.askAlisa(q),new Promise(res=>setTimeout(()=>res({text:'That took too long. Please ask again.',source:'none',error:'timeout'}),12000))]);console.log('[ALISA] brain total',Math.round(performance.now()-tt),'ms ·',r.source);if(mode!='Voice')return false;out=r.text;sub=r.source=='gemini'?'ALISA · cloud (Gemini)':r.source=='on-device'?'ALISA · on-device':(r.error?r.error.slice(0,100):'ALISA');wait=0;return true};   // permissions depend on sv, never on the transcript alone
+ if(MD&&!sens&&!vs)MD.working.pushCommand(q);
+ const bc=!sens&&!vs&&window.ALISABrain&&ALISABrain.parseControl(q);
+ const ac=!sens&&!vs&&!mc&&window.ALISACommands&&ALISACommands.parse(q);   // tool commands carry their OWN permission level (safe / sensitive)
+ const ag=!sens&&!vs&&!mc&&!bc&&!ac&&!SEC.isSensitiveCommand(l)&&window.ALISAAgentRoute?await window.ALISAAgentRoute(q,'voice'):null;if(ag&&mode!='Voice')return;   // Phase 3.1
+ if(sens){out=MI.REFUSAL;sub='ALISA MIND · not stored';wait=0}
+ else if(vs){out='Voice security settings can only be changed in Settings, with your passcode.';sub='ALISA SECURITY · not changed';wait=0}
+ else if(bc){setRing('thinking',0);speak(bc.op=='sleep'?'Going to sleep…':'Waking…');const r=await ALISABrain.control(bc,(p,t)=>speak('Waking offline brain…',Math.round(p*100)+'%'));if(mode!='Voice')return;out=r.text;sub='ALISA BRAIN';wait=0}
+ else if(ac&&ac.level!='sensitive'){out=await ALISACommands.execute(ac);if(mode!='Voice')return;sub='ALISA TOOLS · '+ac.id;wait=0}
+ else if(SEC.isSensitiveCommand(l)||(mc&&mc.private)||(ac&&ac.level=='sensitive')){setRing('verifying',0);const a=await SEC.requireAuthorization(sv,{onState:secState});if(mode!='Voice')return;   // memory access is private → same speaker-verification gate
+  if(!a.ok){out=a.text||'I couldn’t verify your voice. Please try again or use your security passcode.';sub='Command not executed'}
+  else if(mc){out=await MD.commands.execute(mc);sub='ALISA MIND · authorized ('+a.how+')'}
+  else if(ac){out=await ALISACommands.execute(ac);sub='ALISA TOOLS · authorized ('+a.how+')'}
+  else if(window.ALISABrain){if(!(await think()))return;sub='Authorized ('+a.how+') · '+sub}
+  else{out='Authorized ('+a.how+'). This demo has no connected apps or devices, so nothing was actually sent or changed.';sub='Permission granted'}}
+ else if(mc){out=await MD.commands.execute(mc);sub='ALISA MIND'}
+ else if(ag&&ag.handled){out=ag.message;sub='ALISA AGENT · '+ag.status;wait=0}
+ else if(window.ALISABrain){if(!(await think()))return;out+=await hint()}
+ else out=/hello|hi\b|hey/.test(l)?'Hello. I’m glad you’re here.':/time|day/.test(l)?'Today is '+new Date().toDateString()+'.':'I heard you. Tell me more.';
+ const qs=sens?'[sensitive — not stored]':q;
+ if(MD&&!sens){MD.working.pushTurn('user',q);MD.working.pushTurn('alisa',out)}try{chatLog('user',qs);chatLog('alisa',out);autoMood(qs+' '+out)}catch(e){}
+ setRing('thinking',150);setTimeout(()=>{try{speak(out,sub);setRing('speaking',1200+out.length*45)}catch(e){console.warn(e)}tts(out,()=>{busy=false;idleTries=0;idleHalt=false;if(mode=='Voice')setTimeout(()=>{if(mode=='Voice'&&!rec)listenNow()},120)});try{vSync()}catch(e){}},Math.max(wait,30))}
+if(window.ALISAMind)ALISAMind.ui.mount($('#mind'));
+if(window.ALISACommands){ALISACommands.init({speak:t=>{try{tts(t)}catch(e){}}});ALISACommands.ui.mount($('#tools'))}   // step 4: tool system (timers, alarms, lists, web, maths…)
+addEventListener('load',()=>{if(window.ALISABrain)ALISABrain.mount($('#brain'))});
+// download
+$('#dl').onclick=async()=>{const blob=new Blob([SRC],{type:'text/html'});let d=null;try{d=await claude.use('downloads')}catch(e){}
+ if(d){try{await d.save({filename:'alisa.html',data:blob})}catch(e){}}
+ else{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='alisa.html';a.click()}};
+// draw
+const hs=(h,s,l,a)=>`hsla(${h},${s}%,${l}%,${a})`;
+let fk=0;
+function frame(){if(ringNow()=='thinking'&&(fk^=1)){requestAnimationFrame(frame);return}t+=.016*(prefs.calm?.55:1);const v=mode=='Voice';voice+=((v?1:0)-voice)*.05;dark+=((v?.72:0)-dark)*.04;mt=Math.min(1,mt+.012);energy*=.97;
+ const open=mode&&mode!='Voice'&&!wide();cy+=((open?H*.24:bcy)-cy)*.06;R+=((open?Math.min(W*.31,H*.15):bR)-R)*.06;const em=1-Math.pow(1-mt,3),lv=v?(rec?.4:.3+.3*Math.sin(t*7)*Math.sin(t*2.3))+.3*Math.random()*(v?1:0):0;lvl+=(lv-lvl)*.2;
+ const br=.55+.1*Math.sin(t*.9)+energy*.5+voice*.6;
+ x.globalCompositeOperation='source-over';x.globalAlpha=1;
+ const dx=Math.sin(t*.05)*16,dy=Math.cos(t*.04)*12;x.drawImage(off,-20+dx,-20+dy,W+40,H+40);
+ x.globalCompositeOperation='lighter';
+ // background stars bent around ALISA
+ bg.forEach(s=>{let px=s.x*W+dx*s.z*.5,py=s.y*H+dy*s.z*.5,ex=px-cx,ey=py-cy,d=Math.hypot(ex,ey)+1,k=Math.min(60,R*R*.35/d);px+=ex/d*k;py+=ey/d*k;
+  x.fillStyle=hs(215,60,85,(.25+.35*Math.sin(t*s.z*2+s.p))*(1-dark*.6));x.fillRect(px,py,s.s,s.s)});
+ // galaxy
+ const rot=-.5,cr=Math.cos(rot),sr=Math.sin(rot),G=R*1.28*(1+.03*Math.sin(t*.6)+energy*.06);
+ gal.forEach(p=>{p.a+=.0016*(1.4-p.r)*(1+voice*2);const rr=p.r*G,X=Math.cos(p.a)*rr,Y=(p.disc?Math.sin(p.a)*rr*.55:Math.sin(p.a)*rr*.9+p.y*G);
+  const px=cx+X*cr-Y*sr,py=cy+X*sr+Y*cr,tw=.55+.45*Math.sin(t*2+p.p);
+  x.fillStyle=hs(p.h,90,60+(1-p.r)*30,(.85-p.r*.55)*tw*(.7+br*.5));x.fillRect(px,py,p.s,p.s)});
+ // reasoning pathways
+ for(let i=0;i<16;i++){const a=i*TAU/16+t*.05,l=R*(.4+.5*((i*37)%10)/10);x.strokeStyle=hs(210+i*6,100,70,.06+.05*Math.sin(t+i));x.lineWidth=1;x.beginPath();x.moveTo(cx,cy);x.quadraticCurveTo(cx+Math.cos(a+1)*l*.7,cy+Math.sin(a+1)*l*.5,cx+Math.cos(a)*l,cy+Math.sin(a)*l*.75);x.stroke()}
+ orbitCompute();orbitDraw(x,false);
+ // voice ripples
+ if(voice>.02){for(let i=0;i<4;i++){const f=(t*.35+i/4)%1,r=R*(.4+f*1.7+lvl*.3);x.strokeStyle=hs(200,100,75,(1-f)*.5*voice);x.lineWidth=1.5+lvl*3;x.beginPath();x.arc(cx,cy,r,0,TAU);x.stroke()}}
+ ripples=ripples.filter(r=>(r.r+=6,r.a-=.02)>0);ripples.forEach(r=>{x.strokeStyle=hs(210,100,80,r.a*.6);x.lineWidth=2;x.beginPath();x.arc(cx,cy,R*.2+r.r,0,TAU);x.stroke()});
+ // mode structures emerging from the core
+ if(mode&&mode!='Voice'){const N=mode;
+  if(N=='Vision'){for(let i=0;i<3;i++){const f=(t*.25+i/3)%1;x.strokeStyle=hs(170,100,70,(1-f)*.55*em);x.lineWidth=2;x.beginPath();x.ellipse(cx,cy,R*(.3+f*1.6)*em,R*(.3+f*1.6)*em*.7,0,0,TAU);x.stroke()}
+   x.strokeStyle=hs(170,100,75,.4*em);x.lineWidth=1;x.beginPath();x.moveTo(cx-R*1.6*em,cy);x.lineTo(cx+R*1.6*em,cy);x.moveTo(cx,cy-R*1.6*em*.7);x.lineTo(cx,cy+R*1.6*em*.7);x.stroke()}
+  else{const P=items.map(it=>{const a=it.a+t*(N=='Agents'?.25:.04),r=R*it.r*em*(N=='Agents'?.95:1.1);return{X:cx+Math.cos(a)*r*1.05,Y:cy+Math.sin(a)*r*.8+Math.sin(t*.6+it.ph)*8*em,it}});
+   x.lineWidth=1;P.forEach((p,i)=>{x.strokeStyle=hs(p.it.h,100,70,.35*em);x.beginPath();x.moveTo(cx,cy);x.lineTo(p.X,p.Y);if(N=='Knowledge'){const q=P[(i+2)%P.length];x.moveTo(p.X,p.Y);x.lineTo(q.X,q.Y)}x.stroke()});
+   P.forEach(p=>{const s=(N=='Agents'?9:N=='Memory'?5:4)*em,g=x.createRadialGradient(p.X,p.Y,0,p.X,p.Y,s*4);g.addColorStop(0,hs(p.it.h,100,85,.9*em));g.addColorStop(1,hs(p.it.h,100,60,0));x.fillStyle=g;x.beginPath();x.arc(p.X,p.Y,s*4,0,TAU);x.fill()});
+   x.globalCompositeOperation='source-over';x.font='300 12px Helvetica,Arial,sans-serif';x.textAlign='center';P.forEach(p=>{x.fillStyle=`rgba(225,235,255,${.85*em})`;x.fillText(p.it.n,p.X,p.Y+22)});x.globalCompositeOperation='lighter'}}
+ // light beam + platform
+ let bm=x.createLinearGradient(0,cy-R*1.7,0,cy+R*1.5);bm.addColorStop(0,'rgba(120,180,255,0)');bm.addColorStop(.5,`rgba(180,215,255,${.22*br})`);bm.addColorStop(1,'rgba(120,180,255,0)');x.fillStyle=bm;x.fillRect(cx-1,cy-R*1.7,2,R*3.2);x.globalAlpha=.25;x.fillRect(cx-9,cy-R*1.7,18,R*3.2);x.globalAlpha=1;
+ for(let i=0;i<1;i++){x.strokeStyle=hs(205+i*15,100,70,.14);x.lineWidth=1.5;x.beginPath();x.ellipse(cx,cy+R*1.4,R*(.75+i*.28),R*(.12+i*.04),0,0,TAU);x.stroke();x.beginPath();x.ellipse(cx,cy-R*1.4,R*(.7+i*.2),R*(.09+i*.03),0,0,TAU);x.stroke()}
+ // orbiting crystals
+ for(let i=0;i<7;i++){const a=t*(.12+i*.02)*(i%2?-1:1)+i*.9,rr=R*(1.05+.12*i%3*.5+.1),px=cx+Math.cos(a)*rr*1.1,py=cy+Math.sin(a)*rr*.55,sz=(5+i%3*2)*(1+.3*Math.sin(a)),ro=t*.8+i;x.save();x.translate(px,py);x.rotate(ro);x.strokeStyle=hs(200+i*20,100,78,.7);x.fillStyle=hs(200+i*20,100,70,.15);x.lineWidth=1;x.beginPath();x.moveTo(0,-sz*1.4);x.lineTo(sz,0);x.lineTo(0,sz*1.4);x.lineTo(-sz,0);x.closePath();x.fill();x.stroke();x.restore()}
+ // intelligence star
+ const S=R*(.55+br*.5);let g=x.createRadialGradient(cx,cy,0,cx,cy,S);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.05,'rgba(235,248,255,.85)');g.addColorStop(.14,'rgba(120,215,255,.5)');g.addColorStop(.4,'rgba(50,110,255,.2)');g.addColorStop(.72,'rgba(110,60,220,.07)');g.addColorStop(1,'rgba(60,40,180,0)');x.fillStyle=g;x.beginPath();x.arc(cx,cy,S,0,TAU);x.fill();
+ g=x.createLinearGradient(cx-S*1.6,cy,cx+S*1.6,cy);g.addColorStop(0,'rgba(120,170,255,0)');g.addColorStop(.5,`rgba(220,235,255,${.32*br})`);g.addColorStop(1,'rgba(120,170,255,0)');x.fillStyle=g;x.fillRect(cx-S*1.6,cy-1,S*3.2,2);
+ // darkness in voice mode (over the universe, under the core glow)
+ x.globalCompositeOperation='source-over';if(dark>.01){x.fillStyle=`rgba(0,0,6,${dark*.55})`;x.fillRect(0,0,W,H);
+  x.globalCompositeOperation='lighter';g=x.createRadialGradient(cx,cy,0,cx,cy,S*1.1);g.addColorStop(0,`rgba(255,255,255,${.6*voice})`);g.addColorStop(1,'rgba(80,120,255,0)');x.fillStyle=g;x.beginPath();x.arc(cx,cy,S*1.1,0,TAU);x.fill()}
+ // orbit ring of nodes
+ const oy=OY,rx=wide()?W*.27:W*.4,ry=Math.max(18,H*.028);x.globalCompositeOperation='source-over';if(!wide()){x.fillStyle='rgba(3,6,20,.9)';x.strokeStyle='rgba(150,185,255,.1)';x.lineWidth=1;x.beginPath();x.roundRect(cx-rx*1.12,oy-44,rx*2.24,94,47);x.fill();x.stroke()}x.globalCompositeOperation='lighter';
+ 
+ if(!mode){const w=wide(),L=w?cx-R*1.2:12,Rt=w?cx+R*1.2:W-12;x.globalCompositeOperation='source-over';x.fillStyle='rgba(190,210,255,.6)';x.font='300 9px Roboto,Arial,sans-serif';x.textAlign=w?'right':'left';x.fillText('MEMORIES · Infinite moments',L,cy-R*.8);x.fillText('REASONING · From data to wisdom',L,cy+R*.85);x.textAlign=w?'left':'right';x.fillText('KNOWLEDGE · All human knowledge',Rt,cy-R*.8);x.fillText('INTELLIGENCE · Always evolving',Rt,cy+R*.85);x.globalCompositeOperation='lighter'}
+ const order=nodes.map(n=>(n.a+=.0035,n));
+ order.forEach((n,i)=>{const s=Math.sin(n.a),c=Math.cos(n.a);n.x=cx+c*rx;n.y=oy-8+s*ry*.8;n.z=(s+1)/2;n.on=sel==i;
+  if(n.on){n.tr.push([n.x,n.y]);if(n.tr.length>38)n.tr.shift()}else if(n.tr.length){n.tr.shift();n.tr.shift()}});
+ (wide()?[]:order.slice()).sort((a,b)=>a.z-b.z).forEach(n=>{const sc=.7+n.z*.5,r=(n.on?15:10)*sc;
+  if(n.tr.length>1){for(let k=1;k<n.tr.length;k++){x.strokeStyle=hs(n.h,100,75,k/n.tr.length*.6);x.lineWidth=k/n.tr.length*5*sc;x.beginPath();x.moveTo(...n.tr[k-1]);x.lineTo(...n.tr[k]);x.stroke()}}
+  const gg=x.createRadialGradient(n.x,n.y,0,n.x,n.y,r*1.9);gg.addColorStop(0,hs(n.h,100,88,.85));gg.addColorStop(.4,hs(n.h,100,65,.3));gg.addColorStop(1,hs(n.h,100,55,0));x.fillStyle=gg;x.beginPath();x.arc(n.x,n.y,r*1.9,0,TAU);x.fill();
+  x.globalCompositeOperation='source-over';x.fillStyle=hs(n.h,100,92,1);x.beginPath();x.arc(n.x,n.y,r*.42,0,TAU);x.fill();
+  x.font=`600 ${9.5+n.z*1.5}px Eurostile,'Bank Gothic','Segoe UI','SF Pro Display',Inter,'Helvetica Neue',Arial,sans-serif`;x.letterSpacing='1.8px';x.textAlign='center';x.lineJoin='round';x.lineWidth=3;x.strokeStyle='rgba(2,4,16,.85)';const ly=n.y+r*1.35+11,lb=n.n.toUpperCase();x.strokeText(lb,n.x+.9,ly);x.fillStyle=`rgba(236,244,255,${.8+n.z*.2})`;x.fillText(lb,n.x+.9,ly);x.letterSpacing='0px';x.globalCompositeOperation='lighter'});
+ orbitUpdate();requestAnimationFrame(frame)}
+// taskbar, status bar, settings, theme
+const prefs={haptics:true,calm:false,bg:0,ac:0,gl:1,speed:1,vlock:false,vsens:1};
+try{Object.assign(prefs,JSON.parse(localStorage.getItem('alisa_prefs')||'{}'))}catch(e){}
+const savePrefs=()=>{try{localStorage.setItem('alisa_prefs',JSON.stringify(prefs))}catch(e){}};
+function buzz(n){if(prefs.haptics&&navigator.vibrate)navigator.vibrate(n)}
+const BGS=[['Deep Navy','#030817',.2],['Midnight Black','#010103',.05],['Dark Purple','#0a0618',.18],['Dark Blue','#04102a',.22],['Graphite','#0c0f15',.06]],
+ACC=[['Cyan',-34,1],['Electric Blue',0,1],['Violet',44,1],['Magenta',98,1],['Emerald',-84,1],['Ice White',-20,.12]],GLW=[['Low',.7],['Medium',1],['High',1.35]];
+let popOpen=null,bat=null,tbT=0;
+function toast(m){const e=$('#tbt');e.textContent=m;e.classList.add('on');clearTimeout(tbT);tbT=setTimeout(()=>e.classList.remove('on'),1600)}
+function applyTheme(say_){const h=ACC[prefs.ac][1],r=document.documentElement.style;r.setProperty('--hs',h);r.setProperty('--bg',BGS[prefs.bg][1]);BGC=BGS[prefs.bg][1];BGA=BGS[prefs.bg][2];GL=GLW[prefs.gl][1];
+ cv.style.filter=oc.style.filter=`hue-rotate(${h}deg) saturate(${ACC[prefs.ac][2]}) brightness(${(.9+GL*.1).toFixed(2)})`;size();try{moodApply()}catch(e){}if(say_)toast(ACC[prefs.ac][0])}
+function chipSync(){const h_=[['bg','Background',BGS],['ac','Accent',ACC],['gl','Glow intensity',GLW]].map(([k,n,L])=>`<div class="sp" style="display:block"><span>${n}</span><div class="chips" data-g="${k}">${L.map((o,i)=>`<button data-i="${i}" class="${prefs[k]==i?'on':''}">${k=='ac'?`<b style="color:hsl(${224+o[1]},${o[2]<1?10:100}%,70%);background:currentColor"></b>`:''}${o[0]}</button>`).join('')}</div></div>`).join('');document.querySelectorAll('#chg,.chg').forEach(e=>e.innerHTML=h_)}
+function tbSync(){document.querySelectorAll('#tb button').forEach(b=>{const a=b.dataset.a;b.classList.toggle('act',a==popOpen||(a=='home'&&!popOpen&&!mode))})}
+function renderStatus(){const c=navigator.connection||{};$('#stv').innerHTML=r_('Network','Connection',navigator.onLine?'Online':'Offline')+r_('Link','Speed class',(c.effectiveType||'—').toUpperCase())+r_('Battery','Power',bat?Math.round(bat.level*100)+'%'+(bat.charging?' ⚡':''):'—')+r_('Mode','Current view',mode||'Idle')+r_('Colour','Accent',ACC[prefs.ac][0])+(window.ALISAAgentUI?ALISAAgentUI.statusRowsHTML():'')}
+function closePop(){popOpen=null;$('#pop').classList.remove('open');tbSync()}
+function togglePop(k){if(popOpen==k)return closePop();popOpen=k;document.querySelectorAll('#pop section').forEach(e=>e.hidden=e.dataset.p!=k);if(k=='status'){renderStatus();if(window.ALISAStatus)ALISAStatus.snapshot().catch(()=>{})}$('#pop').classList.add('open');tbSync()}
+function goHome(){stopVoice();mode=null;sel=-1;energy=1;ripples.push({r:0,a:1});closePop();sync();speak('Home','I’m here. What would you like to do?')}
+$('#tb').onclick=e=>{const b=e.target.closest('button');if(!b)return;buzz(10);const a=b.dataset.a;
+ if(a=='home'){goHome()}else togglePop(a)};
+$('#pop').onclick=e=>{if(window.ALISAAgentUI&&ALISAAgentUI.handleClick(e,()=>{if(popOpen=='status')renderStatus()}))return;const sv=e.target.closest('#vsens button');if(sv){prefs.vsens=+sv.dataset.s;savePrefs();SEC.invalidate();vSync();buzz(8);return}const vc=e.target.closest('.chips[data-voice] button');if(vc){voiceAction(vc.dataset.k);return}const ch=e.target.closest('.chips button');if(ch&&ch.parentNode.dataset.go){const k=ch.dataset.k;closePop();if(k=='home')goHome();else if(k=='status'||k=='report')togglePop(k);else if(k=='reset'){Object.assign(prefs,{haptics:true,calm:false,bg:0,ac:0,gl:1,speed:1});savePrefs();applyTheme(false);chipSync();segSync();document.querySelectorAll('.sw').forEach(b=>b.classList.toggle('on',!!prefs[b.dataset.k]));toast('Defaults restored')}else choose(k,nodes.findIndex(n=>n.n==k));return}if(ch){prefs[ch.parentNode.dataset.g]=+ch.dataset.i;savePrefs();applyTheme(false);chipSync();buzz(8);return}const g=e.target.closest('.seg button');if(g){prefs.speed=+g.dataset.v;savePrefs();segSync();buzz(8);return}const b=e.target.closest('.sw');if(!b)return;const k=b.dataset.k;if(k=='vstrict'){if(vBusy)return;vBusy=true;SEC.setStrictVoiceLock(!SEC.strictActive()).then(r=>{$('#vmsg').textContent=r.text;toast(r.text)}).catch(e=>console.error(e)).finally(()=>{vBusy=false;vSync()});buzz(8);return}prefs[k]=!prefs[k];b.classList.toggle('on',prefs[k]);savePrefs();if(k=='vlock'||k=='vdev'){SEC.invalidate();session=null;vSync()}buzz(8)};
+document.addEventListener('pointerdown',e=>{if(popOpen&&!e.target.closest('#pop,#tb'))closePop()},true);
+addEventListener('keydown',e=>{if(e.key=='Escape')closePop()});
+document.querySelectorAll('.sw').forEach(b=>b.classList.toggle('on',!!prefs[b.dataset.k]));
+if(navigator.getBattery)navigator.getBattery().then(b=>{bat=b}).catch(()=>{});
+function sbTick(){const on=navigator.onLine,c=navigator.connection;$('#sbn').textContent=on?'Online':'Offline';$('#nn').textContent=on?'ONLINE':'OFFLINE';$('#nd').classList.toggle('off',!on);$('#sbd').classList.toggle('off',!on);$('#sbm').textContent='Mode · '+(mode||'Idle')+(window.ALISABrain&&ALISABrain.state.awake?' · '+ALISABrain.state.awake+' brain':'');
+ $('#sbr').textContent=[c&&c.effectiveType&&c.effectiveType.toUpperCase(),bat&&Math.round(bat.level*100)+'%'].filter(Boolean).join(' · ')||'ALISA';tbSync();if(popOpen=='status'&&!document.querySelector('#stv [data-ag-check][disabled]'))renderStatus()}
+sbTick();setInterval(sbTick,1000);setInterval(()=>{if(popOpen=='settings')vSync()},3000);chipSync();vSync();applyTheme(false);
+// TRUE 3D orbital system: 4 tilted planes, projected with perspective; back halves drawn under the core, front halves over it
+let ringState='idle',ringUntil=0;
+function setRing(k,ms){ringState=k;ringUntil=ms?performance.now()+ms:0}
+function ringNow(){if(ringUntil&&performance.now()>ringUntil){ringState='idle';ringUntil=0}return ringState!='idle'?ringState:(mode=='Voice'?'listening':'idle')}
+const ST={idle:{r:1,s:1,g:.62,p:1},listening:{r:1.8,s:1.06,g:.86,p:1.4},thinking:{r:2.8,s:1,g:.82,p:2.8},speaking:{r:1.5,s:1,g:.76,p:1.5},error:{r:.35,s:.985,g:.24,p:.4},verifying:{r:3.4,s:1.02,g:.92,p:3.4},verified:{r:1.2,s:1.05,g:1,p:1.3}};
+const cur={r:1,s:1,g:.62,p:1};let amp=0,lastT=performance.now();
+const rd=d=>d*Math.PI/180,
+mRx=a=>{const c=Math.cos(a),s=Math.sin(a);return[1,0,0,0,c,-s,0,s,c]},
+mRy=a=>{const c=Math.cos(a),s=Math.sin(a);return[c,0,s,0,1,0,-s,0,c]},
+mRz=a=>{const c=Math.cos(a),s=Math.sin(a);return[c,-s,0,s,c,0,0,0,1]},
+mul=(A,B)=>{const o=[];for(let i=0;i<3;i++)for(let j=0;j<3;j++)o.push(A[i*3]*B[j]+A[i*3+1]*B[3+j]+A[i*3+2]*B[6+j]);return o};
+// base plane orientation, precession (own axis + speed), particle count/speed
+const OR=[
+ {h:190,k:1.04,B:mRx(rd(65)),P:a=>mRy(a),w:.30,v:.9,n:3},
+ {h:222,k:.94,B:mul(mRy(rd(25)),mRx(rd(-55))),P:a=>mRx(a),w:-.22,v:-.7,n:2},
+ {h:275,k:.84,B:mRy(rd(75)),P:a=>mRx(a),w:.17,v:.55,n:3},
+ {h:200,k:.74,B:mul(mRz(rd(35)),mul(mRy(rd(40)),mRx(rd(50)))),P:a=>mul(mRy(a),mRx(a*.7)),w:.26,v:-1.1,n:2}];
+const PH={g:0,p:[0,1.3,2.6,3.9],a:[0,2,4,1]},NS=96;let GA=1,MS=[],PTS=[];
+function proj(M,rad,th,f){const c=Math.cos(th)*rad,s=Math.sin(th)*rad,X=M[0]*c+M[1]*s,Y=M[3]*c+M[4]*s,Z=M[6]*c+M[7]*s,k=f/(f-Z);return{X:cx+X*k,Y:cy+Y*k,d:Z/rad,s:k}}
+function orbitCompute(){const now=performance.now(),dt=Math.min(.05,(now-lastT)/1000);lastT=now;
+ const n=ringNow(),k=ST[n],sp=(prefs.speed||1)*(prefs.calm?.55:1);for(const q in cur)cur[q]+=(k[q]-cur[q])*.06;
+ amp+=((n=='speaking'?Math.max(0,Math.min(1,.4+.35*Math.sin(t*8)*Math.sin(t*2.7)+.25*Math.random())):0)-amp)*.25;
+ GA=Math.min(1.8,cur.g/.62*GL*(1+.07*Math.sin(t*.9)+.3*amp));
+ PH.g+=dt*.12*cur.r*sp;const gy=PH.g,gx=.28*Math.sin(PH.g*1.3),G=mul(mRx(gx),mRy(gy*.6)),f=R*5;
+ PTS=OR.map((o,i)=>{PH.p[i]+=dt*o.w*cur.r*sp;PH.a[i]+=dt*o.v*cur.p*sp;
+  const M=mul(G,mul(o.P(PH.p[i]),o.B)),rad=R*o.k*cur.s;MS[i]={M,rad,f};
+  const pts=[];for(let j=0;j<=NS;j++)pts.push(proj(M,rad,j/NS*TAU,f));return pts})}
+function orbitDraw(c,front){c.save();c.globalCompositeOperation='lighter';c.lineCap='round';const u=R/120;
+ OR.forEach((o,i)=>{const P=PTS[i];
+  for(let j=0;j<NS;j++){const a=P[j],b=P[j+1],d=(a.d+b.d)/2;if((d>=0)!=front)continue;const dep=(d+1)/2,
+   acc=.78+.22*Math.sin(j/NS*TAU*3+PH.a[i]*1.5),al=GA*(.12+.42*dep)*acc;
+   c.beginPath();c.moveTo(a.X,a.Y);c.lineTo(b.X,b.Y);
+   c.strokeStyle=hs(o.h,100,70,al*.2);c.lineWidth=(2.8+1.6*dep)*u;c.stroke();
+   c.strokeStyle=hs(o.h,100,76,al);c.lineWidth=(.5+.5*dep)*u*a.s;c.stroke()}
+  const m=MS[i],sg=Math.sign(o.v);
+  for(let j=0;j<o.n;j++){const th=PH.a[i]+j*TAU/o.n,q=proj(m.M,m.rad,th,m.f);
+   for(let t_=5;t_>=1;t_--){const r=proj(m.M,m.rad,th-sg*t_*.075,m.f);if((r.d>=0)!=front)continue;const dp=(r.d+1)/2;
+    c.fillStyle=hs(o.h,100,78,GA*(.1+.3*dp)*(1-t_/6));c.beginPath();c.arc(r.X,r.Y,(.6+.9*dp)*u*r.s,0,TAU);c.fill()}
+   if((q.d>=0)!=front)continue;const dp=(q.d+1)/2,pr=(1.2+1.6*dp)*u*q.s,al=GA*(.3+.7*dp),
+   g=c.createRadialGradient(q.X,q.Y,0,q.X,q.Y,pr*4.5);g.addColorStop(0,hs(o.h,100,88,.55*al));g.addColorStop(1,hs(o.h,100,65,0));
+   c.fillStyle=g;c.beginPath();c.arc(q.X,q.Y,pr*4.5,0,TAU);c.fill();
+   c.fillStyle=hs(o.h,100,92,Math.min(1,.95*al));c.beginPath();c.arc(q.X,q.Y,pr,0,TAU);c.fill()}});
+ c.restore()}
+const nbtn=nodes.map((n,i)=>{const b=document.createElement('button');b.type='button';b.className='nb';b.setAttribute('aria-label',n.n);b.addEventListener('click',e=>{e.preventDefault();let k=i,bd=1e9;if(e.clientX||e.clientY)nodes.forEach((m,j)=>{const d=Math.hypot(m.x-e.clientX,m.y-e.clientY);if(d<bd){bd=d;k=j}});choose(nodes[k].n,k)});document.body.appendChild(b);return b});
+function nodeBtns(){const w=wide();nbtn.forEach((b,i)=>{const n=nodes[i];b.style.display=w?'none':'block';if(!w){b.style.transform=`translate3d(${(n.x-28).toFixed(1)}px,${(n.y-22).toFixed(1)}px,0)`;b.setAttribute('aria-pressed',sel==i)}})}
+function orbitUpdate(){nodeBtns();ox.setTransform(D,0,0,D,0,0);ox.clearRect(0,0,W,H);orbitDraw(ox,true)}
+function segSync(){document.querySelectorAll('.seg:not(#vsens) button').forEach(b=>b.classList.toggle('on',+b.dataset.v==(prefs.speed||1)))}segSync();
+document.querySelectorAll('#dock [data-m]').forEach(b=>b.onclick=()=>choose(b.dataset.m,nodes.findIndex(n=>n.n==b.dataset.m)));
+if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol))addEventListener('load',()=>navigator.serviceWorker.register('/sw.js',{scope:'/',updateViaCache:'none'}).then(r=>{r.update().catch(()=>{});document.addEventListener('visibilitychange',()=>{if(!document.hidden)r.update().catch(()=>{})})}).catch(()=>{}));
+frame();
+setTimeout(()=>{if(!mode)speak('Listening…','I’m here. What would you like to do?')},900);
+/* ---- ALISA menu · language · mood · chat ---- */
+var UI=(()=>{try{return JSON.parse(localStorage.getItem('alisa-ui'))||{}}catch(e){return{}}})();UI.lang=UI.lang||'en';UI.mood=UI.mood||'auto';var AM='calm';
+var MOODS={calm:['😌','Calm',null],happy:['😊','Happy',-179],playful:['😜','Playful',96],loving:['🥰','Loving',121],focused:['🎯','Focused',-49],sleepy:['😴','Sleepy',46]};
+var LANGS={hi:['hi-IN','हिन्दी'],en:['en-US','English'],hg:['en-IN','Hinglish']};
+function LANGCODE(){return LANGS[UI.lang][0]}
+function uiSave(){try{localStorage.setItem('alisa-ui',JSON.stringify(UI));localStorage.setItem('alisa-lang',UI.lang);localStorage.setItem('alisa-mood',AM)}catch(e){}}
+function moodApply(){const m=MOODS[AM];if(!m)return;try{window.ALISAPersonality&&ALISAPersonality.fromLegacy(AM)}catch(e){}const r=document.documentElement.style;if(m[2]===null){const h=ACC[prefs.ac][1];r.setProperty('--hs',h);cv.style.filter=oc.style.filter=`hue-rotate(${h}deg) saturate(${ACC[prefs.ac][2]}) brightness(${(.9+GL*.1).toFixed(2)})`}else{r.setProperty('--hs',m[2]);cv.style.filter=oc.style.filter=`hue-rotate(${m[2]}deg) saturate(1.1) brightness(${(.9+GL*.1).toFixed(2)})`}
+ const t=MOODS[AM][0]+' '+MOODS[AM][1]+(UI.mood=='auto'?' · auto':'');$('#mq').textContent=t;$('#cq').textContent=t;uiSave();
+ $('#mgs').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.m==(UI.mood=='auto'?'auto':AM)))}
+function setMood(k){if(!MOODS[k]||k==AM)return;AM=k;moodApply()}
+function autoMood(t){if(UI.mood!='auto')return;t=String(t||'').toLowerCase();const R=[['loving',/love|thank|shukriya|dhanyavad|pyaar|miss you|sad|cry|lonely|dukhi|udaas|bad day|stress/],['sleepy',/good ?night|sleep|neend|so jao|sleepy/],['playful',/joke|funny|lol|haha|mazak|masti|game|tease/],['happy',/great|awesome|yay|congrat|badhai|happy|khush|good news|amazing|wonderful/],['focused',/work|task|plan|remind|study|exam|deadline|focus|code|meeting/]];for(const[k,re]of R)if(re.test(t))return setMood(k)}
+(()=>{const mg=$('#mgs');mg.innerHTML='<button data-m="auto" style="--sw:conic-gradient(#6af,#f6a,#fc4,#6fc,#6af)"><i>✨</i>Auto</button>'+Object.keys(MOODS).map(k=>`<button data-m="${k}" style="--sw:hsl(${224+(MOODS[k][2]??ACC[prefs.ac][1])},100%,62%)"><i>${MOODS[k][0]}</i>${MOODS[k][1]}</button>`).join('');
+ mg.onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.m=='auto'){UI.mood='auto'}else{UI.mood=b.dataset.m;AM='';setMood(b.dataset.m);return}moodApply()};
+ const lg=$('#lgs'),lp=()=>{lg.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.l==UI.lang));$('#ci').placeholder=UI.lang=='hi'?'ALISA से बात करें…':UI.lang=='hg'?'Alisa se baat karo…':'Message ALISA…'};lp();
+ lg.onclick=e=>{const b=e.target.closest('button');if(!b)return;UI.lang=b.dataset.l;lp();uiSave();try{rec&&rec.abort()}catch(x){}try{speechSynthesis.cancel()}catch(x){}toast(LANGS[UI.lang][1])};
+ const fm=$('#fm'),mp=$('#mp'),ch=$('#chat'),fc=$('#fc'),cm=$('#cm'),ci=$('#ci');
+ fm.onclick=()=>{ch.classList.remove('on');fm.classList.toggle('open',mp.classList.toggle('on'))};
+ addEventListener('pointerdown',e=>{if(mp.classList.contains('on')&&!e.target.closest('#mp,#fm,.nb')){mp.classList.remove('on');fm.classList.remove('open')}});
+ fc.onclick=()=>{mp.classList.remove('on');fm.classList.remove('open');ch.classList.toggle('on');if(ch.classList.contains('on')){if(!cm.children.length)chatLog('alisa',UI.lang=='hi'?'नमस्ते! मैं ALISA हूँ। बताइए, क्या मदद करूँ?':UI.lang=='hg'?'Hello! Main ALISA hoon. Bolo, kya help karoon?':'Hi! I’m ALISA. What would you like to talk about?');setTimeout(()=>ci.focus(),350)}};
+ $('#cx').onclick=()=>ch.classList.remove('on');
+ const send=()=>{const q=ci.value.trim();if(!q)return;ci.value='';chatSend(q)};$('#cs').onclick=send;ci.onkeydown=e=>{if(e.key=='Enter')send()};
+ moodApply()})();
+function chatLog(w,t){const c=$('#cm'),d=document.createElement('div');d.className='b '+(w=='user'?'u':'a');d.textContent=t;c.appendChild(d);c.scrollTop=c.scrollHeight;return d}
+let chatBusy=false;
+async function chatSend(q){if(chatBusy)return;chatBusy=true;chatLog('user',q);const tp=document.createElement('div');tp.className='b a t';tp.innerHTML='<s></s><s></s><s></s>';$('#cm').appendChild(tp);$('#cm').scrollTop=1e9;let out,ag=null,ac=null;
+ try{const MD=window.ALISAMind,mc=MD&&MD.commands.parse(q),bc=window.ALISABrain&&ALISABrain.parseControl(q);autoMood(q);
+  if(SEC.isSensitiveCommand(q.toLowerCase())||(mc&&mc.private))out='That needs voice verification — please use Voice for it.';
+  else if(bc)out=(await ALISABrain.control(bc)).text;
+  else if(mc)out=await MD.commands.execute(mc);
+  else if(window.ALISAAgentRoute&&!(window.ALISACommands&&(ac=ALISACommands.parse(q))&&ac.level=='sensitive')&&(ag=await window.ALISAAgentRoute(q,'chat'))&&ag.handled)out=ag.message;   // Phase 3.1: typed chat never ran local commands itself (they only reached the Brain, which may be asleep), so the agent answers its safe local requests directly; anything the voice-security layer or a sensitive command owns was handled above and never reaches here
+  else if(window.ALISABrain)out=(await Promise.race([ALISABrain.askAlisa(q),new Promise(r=>setTimeout(()=>r({text:'That took too long. Please ask again.'}),12000))])).text;
+  else out='I heard you.';
+  if(MD){MD.working.pushCommand&&MD.working.pushCommand(q);MD.working.pushTurn('user',q);MD.working.pushTurn('alisa',out)}autoMood(out)}
+ catch(e){out='Something went wrong: '+String(e&&e.message||e).slice(0,80)}
+ tp.remove();chatLog('alisa',out);chatBusy=false}
+
+function statusPanel(){const MD=window.ALISAMind,B=window.ALISABrain,on=navigator.onLine,mem=(()=>{try{return MD.memory.getAll().length}catch(e){return '—'}})(),br=B&&B.state.awake?B.state.awake+' brain awake':'asleep',up=Math.round(performance.now()/60000);
+ return `<div class=sh><img class=av src=alisa.png alt=ALISA><div><b>ALISA</b><small><span class="dot${on?'':' off'}"></span>${on?'Online':'Offline'} · ${MOODS[AM][0]} ${MOODS[AM][1]}</small></div></div>`+
+ r_('Mood','Her current feeling',MOODS[AM][0]+' '+MOODS[AM][1]+(UI.mood=='auto'?' · auto':''))+r_('Language','Speech + replies',LANGS[UI.lang][1])+r_('Brain','Thinking engine',br)+r_('Voice','Listening',rec?'Listening':busy?'Thinking':mode=='Voice'?'Ready':'Idle')+r_('Network','Connection',on?'Online':'Offline')+r_('Memories','Saved by ALISA',mem)+r_('Power','Battery',bat?Math.round(bat.level*100)+'%'+(bat.charging?' ⚡':''):'—')+r_('Session','Running for',up+' min')+(window.ALISAAgentUI?ALISAAgentUI.statusRowsHTML():'')}
+setInterval(()=>{if(mode=='Status')try{const y=sheet.scrollTop,ck=sheet.querySelector('[data-ag-check][disabled]');if(ck)return;sheet.innerHTML=statusPanel();sheet.scrollTop=y}catch(e){}},2000);
+</script>
+ </body>
+</html>
